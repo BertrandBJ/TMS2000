@@ -1,0 +1,60 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TMS2000.Core", "TMS2000.Core\TMS2000.Core.csproj", "{5054DEF4-C539-4404-B609-4756E9BF02C4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TMS2000.Server", "TMS2000.Server\TMS2000.Server.csproj", "{C5FF8233-8C58-4E10-9F44-A36401C2EFD9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TMS2000.Shared", "TMS2000.Shared\TMS2000.Shared.csproj", "{986FE4D9-CBA2-46EB-881E-4D2A4E814CBE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TMS2000.Mobile", "TMS2000.Mobile\TMS2000.Mobile.csproj", "{3D63B558-991A-4D7A-8464-EE48B269B6CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TMS2000.Tests", "TMS2000.Tests\TMS2000.Tests.csproj", "{66E14A8B-1ED2-43B2-8B78-BE0F59D73C86}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TMS2000.Console", "TMS2000.Console\TMS2000.Console.csproj", "{AD3F2C04-C256-4B91-8850-51B9844BAEBD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{68EF92A2-DF9E-4CFF-88C9-72B13310863B}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yaml = docker-compose.yaml
+		.env = .env
+		docker-compose.override.yml = docker-compose.override.yml
+		docker-compose.prod.yml = docker-compose.prod.yml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5054DEF4-C539-4404-B609-4756E9BF02C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5054DEF4-C539-4404-B609-4756E9BF02C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5054DEF4-C539-4404-B609-4756E9BF02C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5054DEF4-C539-4404-B609-4756E9BF02C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5FF8233-8C58-4E10-9F44-A36401C2EFD9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5FF8233-8C58-4E10-9F44-A36401C2EFD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5FF8233-8C58-4E10-9F44-A36401C2EFD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5FF8233-8C58-4E10-9F44-A36401C2EFD9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{986FE4D9-CBA2-46EB-881E-4D2A4E814CBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{986FE4D9-CBA2-46EB-881E-4D2A4E814CBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{986FE4D9-CBA2-46EB-881E-4D2A4E814CBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{986FE4D9-CBA2-46EB-881E-4D2A4E814CBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D63B558-991A-4D7A-8464-EE48B269B6CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D63B558-991A-4D7A-8464-EE48B269B6CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D63B558-991A-4D7A-8464-EE48B269B6CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D63B558-991A-4D7A-8464-EE48B269B6CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66E14A8B-1ED2-43B2-8B78-BE0F59D73C86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66E14A8B-1ED2-43B2-8B78-BE0F59D73C86}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66E14A8B-1ED2-43B2-8B78-BE0F59D73C86}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66E14A8B-1ED2-43B2-8B78-BE0F59D73C86}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD3F2C04-C256-4B91-8850-51B9844BAEBD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD3F2C04-C256-4B91-8850-51B9844BAEBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD3F2C04-C256-4B91-8850-51B9844BAEBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD3F2C04-C256-4B91-8850-51B9844BAEBD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
