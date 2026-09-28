@@ -6,6 +6,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["TMS2000.Console/TMS2000.Console.csproj", "TMS2000.Console/"]
 COPY ["TMS2000.Core/TMS2000.Core.csproj", "TMS2000.Core/"]
+COPY ["TMS2000.Shared/TMS2000.Shared.csproj", "TMS2000.Shared/"]
 RUN dotnet restore "TMS2000.Console/TMS2000.Console.csproj"
 COPY . .
 WORKDIR "/src/TMS2000.Console"
