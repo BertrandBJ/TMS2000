@@ -6,11 +6,11 @@ namespace TMS2000.Server.Controllers;
 [ApiController] // active plusieurs comportement de base comme des réponse 400 bad request and such.
 [Route("api/[controller]")] // sert à Definir l'url. en gros controller est removed et c'est le reste du nom utilisé donc ici api/auth.
 
-public class AuthController : ControllerBase // héritage du controller de base de .net. ça donne accès à plein de fonction déjà présente et pas à re-écrire.
+public class AuthentificationController : ControllerBase // héritage du controller de base de .net. ça donne accès à plein de fonction déjà présente et pas à re-écrire.
 {
     private readonly AuthService _authService;
 
-    public AuthController(AuthService authService)
+    public AuthentificationController(AuthService authService)
     {
         _authService = authService; // injection au niveau du constructeur de authService. qui proviens de program.cs. 
     }
@@ -22,14 +22,18 @@ public class AuthController : ControllerBase // héritage du controller de base 
     {
         var token = await _authService.LoginAsync(request.Email, request.Password);
         if (token == null) return Unauthorized(new { message = "Email ou mot de passe incorrect." }); // Unauthorized send back 401 de base. avec le message à la suite.
-        return Ok(new { token }); 
+        return Ok(new { token });  // à changer pour passer sur le global handler après.
     }
 
-    [HttpPost("register")]
+    
+    // api post pour create un account, je vais pas en avoir besoin en théorie
+   /* [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
         var success = await _authService.RegisterAsync(request.Email, request.Password, request.Role);
         if (!success) return Conflict(new { message = "Cet email est déjà utilisé." });
-        return Ok(new { message = "Compte créé avec succès." });
-    }
+        return Ok(new { message = "Compte créé avec succès." }); // à changer pour passer sur le global handler après.
+    }*/ 
+   
+   
 }

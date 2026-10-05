@@ -54,6 +54,10 @@
     environment:
       - ConnectionStrings__MongoDb=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@tms2000.mongodb:27017
       - MongoSettings__DatabaseName=${MONGO_DATABASE}
+      - Seed__AdminEmail=${SEED_ADMIN_EMAIL}
+      - Seed__AdminPassword=${SEED_ADMIN_PASSWORD}
+      - Seed__PlayerEmail=${SEED_PLAYER_EMAIL}
+      - Seed__PlayerPassword=${SEED_PLAYER_PASSWORD}
     profiles:
       - seed # => le service est exclus d'un docker compose classic, il faut spécifier via docker compose --profile seed up. il va service seulement à seeder la bdd.
     
