@@ -7,7 +7,7 @@ public static class MongoIndexes
 {
     public static async Task EnsureAllAsync(IMongoDatabase database)
     {
-        var users = database.GetCollection<User>(MongoCollections.Users);
+        var users = database.GetCollection<User>(MongoCollections.Users); // on fait ça parce que ça va plus vite ? 
         
         await users.Indexes.CreateOneAsync(new CreateIndexModel<User>(
             
@@ -16,7 +16,7 @@ public static class MongoIndexes
             new CreateIndexOptions { Unique = true })); // only 1 user per email en gros
         
         
-        var transactions = database.GetCollection<Transaction>(MongoCollections.Transactions); // regle d'indexation pour les transactions.
+        var transactions = database.GetCollection<Transaction>(MongoCollections.Transactions); // regle d'indexation pour les transactions. pour aider mongo à trier.
         
         await transactions.Indexes.CreateOneAsync(new CreateIndexModel<Transaction>(
             

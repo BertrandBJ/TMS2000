@@ -1,7 +1,10 @@
 ﻿using MongoDB.Driver;
 using TMS2000.Core.Data;
 using TMS2000.Core.Models;
-// WARNING CECI EST UN PASTE GEANT DE CLAUDE POUR TEST, J'Y COMPREND RIEN POUR LE MOMENT.
+
+// WARNING CECI EST UN PASTE GEANT DE CLAUDE JUSTE POUR VISUALISER MA BDD SUR COMPASS. ça add des data dans le seeding.
+// J'ai pas encore regardé en détail comment cela fonction//
+
 MongoConventions.Register();
 
 string Required(string name) =>
@@ -11,13 +14,13 @@ string Required(string name) =>
 var database = new MongoClient(Required("ConnectionStrings__MongoDb"))
     .GetDatabase(Required("MongoSettings__DatabaseName"));
 
-await MongoIndexes.EnsureAllAsync(database);
+await MongoIndexes.EnsureAllAsync(database); // je devrai changer le nom de la methode, parce que c'est pas ouf descriptif (c'est pour email/user => croissant/unique)//
 
-var resources = database.GetCollection<Resource>(MongoCollections.Resources);
+var resources = database.GetCollection<Resource>(MongoCollections.Resources); 
 var users = database.GetCollection<User>(MongoCollections.Users);
 
 var now = DateTime.UtcNow;
-var random = new Random();
+var random = new Random(); // je suppose que ça va être pour le mode de growth/Degrowth.
 var modes = Enum.GetValues<PriceMode>();
 
 var seedResources = new (string Id, string Name, decimal Price)[]
@@ -34,11 +37,11 @@ var seedResources = new (string Id, string Name, decimal Price)[]
     ("r-gold", "Or", 300m)
 };
 
-foreach (var (id, name, price) in seedResources)
+foreach (var (id, name, price) in seedResources) //evite les doublons//
 {
     if (await resources.Find(r => r.Id == id).AnyAsync())
     {
-        Console.WriteLine($"Ressource '{name}' déjà présente, ignorée.");
+        Console.WriteLine($"Ressource '{name}' déjà présente, ignorée."); // si un truc est déjà dans la bdd, on ignore et go next// normalement avec mangoDB qui fait _id auto donc déjà unique mais bon//
         continue;
     }
 
@@ -58,6 +61,8 @@ await SeedUserAsync(Required("Seed__AdminEmail"), Required("Seed__AdminPassword"
 await SeedUserAsync(Required("Seed__PlayerEmail"), Required("Seed__PlayerPassword"), "Player", 1000m);
 
 Console.WriteLine("Seed terminé.");
+
+// below => là je fais 2 request à la suite, en théorie vu que mongoDB porte la charge de l'unicité je pourrai juste faire un try-catch. (et catch l'erreur mongoDB).
 
 async Task SeedUserAsync(string email, string password, string role, decimal balance)
 {
