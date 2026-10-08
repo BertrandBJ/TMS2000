@@ -16,17 +16,13 @@ MongoConventions.Register(); // call les regles de C# <=> mongoDB.
 
 #region Configuration
 
-var mongoConnectionString = builder.Configuration.GetConnectionString("MongoDb")
-                            ?? throw new InvalidOperationException("La chaîne de connexion 'MongoDb' est manquante. Vérifie la variable d'environnement ConnectionStrings__MongoDb.");
+var mongoConnectionString = Required(builder.Configuration, "ConnectionStrings:MongoDb");
+var mongoDatabaseName = Required(builder.Configuration, "MongoSettings:DatabaseName");
+var jwtSecret = Required(builder.Configuration, "Jwt:Secret");
+var jwtExpiryHours = int.Parse(Required(builder.Configuration, "Jwt:ExpiryHours"));
 
-var mongoDatabaseName = builder.Configuration["MongoSettings:DatabaseName"] // je déclare ici le nom de la database pour l'use below, mieux que de tout scoped.
-                        ?? throw new InvalidOperationException("La configuration 'MongoSettings:DatabaseName' est manquante.");
 
-var jwtExpiryHours = int.Parse(builder.Configuration["Jwt:ExpiryHours"]
-                               ?? throw new InvalidOperationException("La configuration 'Jwt:ExpiryHours' est manquante."));
 
-var jwtSecret = builder.Configuration["Jwt:Secret"]
-                ?? throw new InvalidOperationException("La configuration 'Jwt:Secret' est manquante. Vérifie la variable d'environnement Jwt__Secret.");
 #endregion 
 
 #region Services
@@ -82,7 +78,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseExceptionHandler();
-app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers(); // précision ici => mapcontrollers doit être après auth et author. sinon les 2 middlesware d'auth n'ont jamais l'occassion de run pendant une request.
@@ -96,3 +91,8 @@ await MongoIndexes.EnsureAllAsync(mongoClient.GetDatabase(mongoDatabaseName)); /
 #endregion
  
 app.Run();
+
+static string Required(IConfiguration config, string key) =>
+    string.IsNullOrWhiteSpace(config[key])
+        ? throw new InvalidOperationException($"La configuration '{key}' est manquante ou vide.")
+        : config[key]!;

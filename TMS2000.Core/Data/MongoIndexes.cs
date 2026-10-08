@@ -15,13 +15,5 @@ public static class MongoIndexes
             
             new CreateIndexOptions { Unique = true })); // only 1 user per email en gros
         
-        
-        var transactions = database.GetCollection<Transaction>(MongoCollections.Transactions); // regle d'indexation pour les transactions. pour aider mongo à trier.
-        
-        await transactions.Indexes.CreateOneAsync(new CreateIndexModel<Transaction>(
-            
-            Builders<Transaction>.IndexKeys
-                .Ascending(t => t.UserId)
-                .Descending(t => t.CreatedAt)));
     }
 }

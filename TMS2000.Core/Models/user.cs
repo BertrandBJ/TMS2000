@@ -10,11 +10,13 @@ public class User
     public decimal Balance { get; set; }
     
     public List<Holding> Portfolio { get; set; } = new(); // whatever shit you have
+    
+    public List<Transaction> Transactions { get; set; } = new(); // sans ça pas d'imbrication right.
 }
 
 public class Holding
 {
-    public string ResourceId { get; set; } = string.Empty; // du coup là s'est un call vers la collection ressources ?
+    public string ResourceId { get; set; } = string.Empty; // 
     
     public string ResourceName { get; set; } = string.Empty; // whatever name the item is.
     
@@ -28,4 +30,21 @@ public class Lot // correspond à un achat en gros.
     public decimal BuyPrice { get; set; } 
     
     public DateTime BoughtAt { get; set; }
+}
+
+public class Transaction
+{
+    public string TransactionId { get; set; } = Guid.NewGuid().ToString();
+    public string ResourceId { get; set; } = string.Empty;
+    public string ResourceName { get; set; } = string.Empty;
+    public TransactionType Type { get; set; }
+    public int Quantity { get; set; }
+    public decimal ExecutedPrice { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? ExecutedAt { get; set; }
+    public bool Offline { get; set; }
+    public TransactionStatus Status { get; set; }
+    public string? RejectReason { get; set; }
+    public decimal? Profit { get; set; }
+    public decimal? Efficiency { get; set; }
 }

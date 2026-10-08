@@ -4,5 +4,4 @@ public class MongoCollections
 {
     public const string Users = "users";
     public const string Resources = "resources";
-    public const string Transactions = "transactions";
 }

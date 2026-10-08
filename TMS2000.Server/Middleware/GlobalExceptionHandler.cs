@@ -13,6 +13,7 @@ public class GlobalExceptionHandler : IExceptionHandler //interface qui promet l
     }
 
     public async ValueTask<bool> TryHandleAsync(
+        
         HttpContext httpContext, // type de request http.
         Exception exception, // l'erreur qui viens d'être catch
         CancellationToken cancellationToken) // token de cancellation de l'app au besoin, on le transmet au reste de l'application pour tout fermer.
