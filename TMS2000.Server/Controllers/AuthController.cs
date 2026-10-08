@@ -24,16 +24,4 @@ public class AuthentificationController : ControllerBase // héritage du control
         if (token == null) return Unauthorized(new { message = "Email ou mot de passe incorrect." }); // Unauthorized send back 401 de base. avec le message à la suite.
         return Ok(new { token });  // à changer pour passer sur le global handler après.
     }
-
-    
-    // api post pour create un account, je vais pas en avoir besoin en théorie
-   /* [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterRequest request)
-    {
-        var success = await _authService.RegisterAsync(request.Email, request.Password, request.Role);
-        if (!success) return Conflict(new { message = "Cet email est déjà utilisé." });
-        return Ok(new { message = "Compte créé avec succès." }); // à changer pour passer sur le global handler après.
-    }*/ 
-   
-   
 }

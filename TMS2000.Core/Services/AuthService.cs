@@ -4,7 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using TMS2000.Core.Models;
 using TMS2000.Core.Repositories;
-using TMS2000.Core.Exceptions;
+
 
 namespace TMS2000.Core.Services;
 
@@ -28,23 +28,7 @@ public class AuthService
             throw new UnauthorizedAccessException("Email ou mot de passe incorrect.");
         return GenerateJwt(user);
     }
-    public async Task<bool> RegisterAsync(string email, string password, string role)
-    {
-        var existingUser = await _userRepository.GetByEmailAsync(email);
-        if (existingUser != null)
-            throw new EmailAlreadyExistsException(email);
-
-        var user = new User
-        {
-            Email = email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
-            Role = role
-        };
-
-        await _userRepository.CreateAsync(user);
-        return true;
-    }
-
+    
     private string GenerateJwt(User user)
     {
         var claims = new[] // pour info => syntax new[] {X,Y,Z} => crée le tableau ET le remplis directement avec le contenue de {}. c'est un "array initializer". Bref c'est pour avoir un état zéro du tableau directement à la création.

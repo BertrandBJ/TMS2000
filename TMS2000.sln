@@ -17,10 +17,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TMS2000.Console", "TMS2000.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{68EF92A2-DF9E-4CFF-88C9-72B13310863B}"
 	ProjectSection(SolutionItems) = preProject
-		docker-compose.yaml = docker-compose.yaml
-		.env = .env
-		docker-compose.override.yml = docker-compose.override.yml
+		docker-compose.yml = docker-compose.yml
+		docker-compose.dev.yml = docker-compose.dev.yml
 		docker-compose.prod.yml = docker-compose.prod.yml
+		.env.dev.example = .env.dev.example
+		.env.prod.example = .env.prod.example
+		.env.test.example = .env.test.example
+		.env.dev = .env.dev
+		.env.prod = .env.prod
+		.env.test = .env.test
 	EndProjectSection
 EndProject
 Global

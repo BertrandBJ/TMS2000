@@ -17,9 +17,5 @@ public class UserRepository
     {
         return await _users.Find(u => u.Email == email).FirstOrDefaultAsync();
     }
-
-    public async Task CreateAsync(User user)
-    {
-        await _users.InsertOneAsync(user);
-    }
+    
 }

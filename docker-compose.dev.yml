@@ -4,6 +4,9 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
 
   tms2000.mongodb:
+    command: ["mongod", "--quiet"] # stop mongo de spam mon terminal à cause des healthcheck.
     ports:
       - "${MONGO_PORT}:27017"
+    
   #CHANGER LE NOM EN DEV, pas override.
+  
