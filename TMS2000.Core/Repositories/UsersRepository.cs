@@ -17,5 +17,4 @@ public class UserRepository
     {
         return await _users.Find(u => u.Email == email).FirstOrDefaultAsync();
     }
-    
 }

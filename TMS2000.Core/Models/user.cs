@@ -12,6 +12,8 @@ public class User
     public List<Holding> Portfolio { get; set; } = new(); // whatever shit you have
     
     public List<Transaction> Transactions { get; set; } = new(); // sans ça pas d'imbrication right.
+
+    public List<RefreshToken> RefreshTokens { get; set; } = new();
 }
 
 public class Holding
@@ -47,4 +49,13 @@ public class Transaction
     public string? RejectReason { get; set; }
     public decimal? Profit { get; set; }
     public decimal? Efficiency { get; set; }
+}
+
+public class RefreshToken
+{
+    public string TokenHash { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public DateTime ExpiresAt { get; set; }
+    public DateTime? RevokedAt { get; set; }
+    
 }

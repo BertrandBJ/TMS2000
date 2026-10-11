@@ -20,6 +20,7 @@ var mongoConnectionString = Required(builder.Configuration, "ConnectionStrings:M
 var mongoDatabaseName = Required(builder.Configuration, "MongoSettings:DatabaseName");
 var jwtSecret = Required(builder.Configuration, "Jwt:Secret");
 var jwtExpiryHours = int.Parse(Required(builder.Configuration, "Jwt:ExpiryHours"));
+var jwtRefreshTokenDays = int.Parse(Required(builder.Configuration, "Jwt:RefreshTokenDays"));
 
 
 
@@ -42,7 +43,7 @@ builder.Services.AddHealthChecks()
 
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped(sp =>
-    new AuthService(sp.GetRequiredService<UserRepository>(), jwtSecret, jwtExpiryHours));
+    new AuthService(sp.GetRequiredService<UserRepository>(), jwtSecret, jwtExpiryHours, jwtRefreshTokenDays));
 
 // above : j'add à mon healthcheck un healthcheck interne à la bdd. pour ce faire il execute une fonction sp =>
 // par convention c'est sp pour IServiceProvider => imposé dans l'écriture de addMongoDb, il est possible de faire 
