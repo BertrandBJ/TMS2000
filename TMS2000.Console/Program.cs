@@ -1,9 +1,7 @@
 ﻿using MongoDB.Driver;
 using TMS2000.Core.Data;
 using TMS2000.Core.Models;
-
-// WARNING CECI EST UN PASTE GEANT DE CLAUDE JUSTE POUR VISUALISER MA BDD SUR COMPASS. ça add des data dans le seeding.
-// J'ai pas encore regardé en détail comment cela fonction//
+using TMS2000.Core.Helper;
 
 MongoConventions.Register();
 
@@ -14,7 +12,8 @@ string Required(string name) =>
 var database = new MongoClient(Required("ConnectionStrings__MongoDb"))
     .GetDatabase(Required("MongoSettings__DatabaseName"));
 
-await MongoIndexes.EnsureAllAsync(database); // je devrai changer le nom de la methode, parce que c'est pas ouf descriptif (c'est pour email/user => croissant/unique)//
+await MongoIndexes.EnsureAllAsync(database);
+// je devrai changer le nom de la methode, parce que c'est pas ouf descriptif (c'est pour email/user => croissant/unique)//
 
 var resources = database.GetCollection<Resource>(MongoCollections.Resources); 
 var users = database.GetCollection<User>(MongoCollections.Users);
@@ -66,18 +65,19 @@ Console.WriteLine("Seed terminé.");
 
 async Task SeedUserAsync(string email, string password, string role, decimal balance)
 {
-    if (await users.Find(u => u.Email == email).AnyAsync())
+    var normalizedEmail = EmailNormalizer.Normalize(email);
+    if (await users.Find(u => u.Email == normalizedEmail).AnyAsync())
     {
-        Console.WriteLine($"Utilisateur '{email}' déjà présent, ignoré.");
+        Console.WriteLine($"Utilisateur '{normalizedEmail}' déjà présent, ignoré.");
         return;
     }
 
     await users.InsertOneAsync(new User
     {
-        Email = email,
+        Email = normalizedEmail,
         PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
         Role = role,
         Balance = balance
     });
-    Console.WriteLine($"Utilisateur '{email}' ({role}) créé.");
+    Console.WriteLine($"Utilisateur '{normalizedEmail}' ({role}) créé.");
 }
