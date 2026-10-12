@@ -1,3 +1,4 @@
+using TMS2000.Shared;
 namespace TMS2000.Core.Models;
 
 public class Resource

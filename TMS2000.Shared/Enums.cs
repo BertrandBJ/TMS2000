@@ -1,4 +1,4 @@
-namespace TMS2000.Core.Models;
+namespace TMS2000.Shared;
 
 public enum PriceMode { Stable, SlowRise, FastRise, SlowFall, FastFall, Chaotic }
 
