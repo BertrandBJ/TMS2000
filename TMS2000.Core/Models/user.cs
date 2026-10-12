@@ -1,3 +1,4 @@
+using TMS2000.Shared;
 namespace TMS2000.Core.Models;
 
 public class User
@@ -8,6 +9,8 @@ public class User
     public string Role { get; set; } = string.Empty; // "Admin" ou "Player"
     
     public decimal Balance { get; set; }
+    
+    public int Version { get; set; }
     
     public List<Holding> Portfolio { get; set; } = new(); // whatever shit you have
     

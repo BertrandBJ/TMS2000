@@ -1,9 +1,10 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace TMS2000.Shared.DTO.Auth;
 
-public record LoginRequest(string Email, string Password);
-
-
-
+public record LoginRequest(
+    [Required, EmailAddress] string Email,
+    [Required] string Password);
 /*
 public class LoginRequest(string Email, string Password)
 {

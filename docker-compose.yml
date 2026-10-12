@@ -17,6 +17,7 @@
       - Jwt__Secret=${JWT_SECRET}
       - Jwt__ExpiryHours=${JWT_EXPIRY_HOURS}
       - Jwt__RefreshTokenDays=${JWT_REFRESH_TOKEN_DAYS}
+      - PriceEngine__TickIntervalSeconds=${PRICE_TICK_SECONDS}
     healthcheck:
       test: curl -f http://localhost:8080/health || exit 1 #curl est installé dans le dockerfile de .server.
       interval: 10s
