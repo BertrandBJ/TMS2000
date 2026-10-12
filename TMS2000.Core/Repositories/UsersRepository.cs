@@ -41,5 +41,11 @@ public class UserRepository
             user);
 
         return result.MatchedCount == 1;
+        
+        // synthax : if (result.MatchedCount == 1)
+        //     return true;
+        // else
+        //     return false;
+        // un opérateur ==1 return déjà false ou true en fonction de la situation, 
     }
 }

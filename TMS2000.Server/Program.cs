@@ -70,7 +70,7 @@ builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped(sp =>
     new AuthService(sp.GetRequiredService<UserRepository>(), jwtSecret, jwtExpiryHours, jwtRefreshTokenDays));
 
-var priceTickSeconds = int.Parse(Required(builder.Configuration, "PriceEngine:TickIntervalSeconds"));
+
 
 builder.Services.AddScoped<ResourceRepository>();
 
@@ -81,16 +81,15 @@ builder.Services.AddScoped<TradeService>();
 builder.Services.AddScoped<AdminUserService>();
 builder.Services.AddScoped<PlayerService>();
 builder.Services.AddSingleton<MarketClock>();
+
+var priceTickSeconds = int.Parse(Required(builder.Configuration, "PriceEngine:TickIntervalSeconds"));
+
 builder.Services.AddHostedService(sp => new PriceTickService(
     sp.GetRequiredService<IServiceScopeFactory>(),
     sp.GetRequiredService<MarketClock>(),
     sp.GetRequiredService<ILogger<PriceTickService>>(),
     TimeSpan.FromSeconds(priceTickSeconds)));
 
-
-// above : j'add à mon healthcheck un healthcheck interne à la bdd. pour ce faire il execute une fonction sp =>
-// par convention c'est sp pour IServiceProvider => imposé dans l'écriture de addMongoDb, il est possible de faire 
-// d'accès à mongodb plus général (ou je vais faire sp => GetRequiredService).
 #endregion
 
 #region Auth

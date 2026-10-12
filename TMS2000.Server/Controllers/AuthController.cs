@@ -7,7 +7,7 @@ namespace TMS2000.Server.Controllers;
 // active plusieurs comportement de base de controller. exemple pour 400 => si le format n'est pas bon, répond automatiquement 400.
 
 [Route("api/auth")] 
-// side note : [controller dans le nom de la route = passe le nom de la class du controller below mais sans "controller// 
+// side note : [controller dans le nom de la route = passe le nom de la class du controller below mais sans "controller//
 
 public class AuthController : ControllerBase 
 // héritage du controller de base de .net. ça donne accès à plein de fonction déjà présente et pas à re-écrire.
