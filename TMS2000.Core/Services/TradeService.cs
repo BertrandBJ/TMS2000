@@ -20,18 +20,22 @@ public class TradeService
 
     public async Task<TradeResponse> ExecuteAsync(string userId, TradeRequest request)
     {
-        var type = request.Type!.Value; // non null : garanti par [Required] dans le DTO
+        var type = request.Type!.Value; 
+        // non null : garanti par [Required] dans le DTO => je peux dire au compilateur en utilisant ! => c'est bon ça sera pas null.
 
-        for (var attempt = 1; attempt <= GameSettings.TradeMaxAttempts; attempt++)
+        for (var attempt = 1; attempt <= GameSettings.TradeMaxAttempts; attempt++) 
+            // side note : la boucle try seulement si il y'a un echec de rédaction dans la bdd à cause des versions.
         {
             var user = await _userRepository.GetByIdAsync(userId)
                        ?? throw new NotFoundException("Joueur introuvable.");
-
+                        // synthax déjà vu : je re-comment =>  [ ?? => if left == null => apply right statement].
             
             var existing = user.Transactions.FirstOrDefault(t => t.TransactionId == request.TransactionId);
+            
             if (existing != null)
                 return ToResponse(existing, user.Balance);
-
+            // above = vérifie si la transaction n'existe pas déjà => si c'est le cas, retourne la réponse déjà exisante => idempotence.
+            
             var resource = await _resourceRepository.GetByIdAsync(request.ResourceId)
                            ?? throw new NotFoundException($"Ressource '{request.ResourceId}' introuvable.");
 
@@ -39,15 +43,17 @@ public class TradeService
             var transaction = type == TransactionType.Buy
                 ? Buy(user, resource, request, now)
                 : Sell(user, resource, request, now);
-
+            // opérateur ternaire, en gros => si c'est de type buy ( statement à gauche right => do buy) sinon do sell.
             
             
             user.Transactions.Add(transaction);
             if (user.Transactions.Count > GameSettings.MaxTransactionsPerUser)
                 user.Transactions.RemoveRange(0, user.Transactions.Count - GameSettings.MaxTransactionsPerUser);
+            
+            // removerange => prend à partir de 0, [number à remove], ici le nombre est en principe toujours 1, cela fonctionne quand ça depasse 200 MaxTransactionsPerUser.
 
             var expectedVersion = user.Version;
-            user.Version++;
+            user.Version++; 
 
             if (await _userRepository.ReplaceIfVersionMatchesAsync(user, expectedVersion))
                 return ToResponse(transaction, user.Balance);
@@ -95,14 +101,16 @@ public class TradeService
         EnsureAllowedByRules(resource, now, price, TransactionType.Sell, request.Quantity);
 
         var holding = user.Portfolio.FirstOrDefault(h => h.ResourceId == resource.Id);
+        // cherche la ligne du portefeuille avec la bonne ressource.
         var owned = holding?.Lots.Sum(lot => lot.Quantity) ?? 0;
-
+        // calcule le total que tu possède de X ressources.
         if (holding == null || owned < request.Quantity)
             throw new BusinessRuleException($"Quantité détenue insuffisante : {owned} en portefeuille, {request.Quantity} demandées.");
 
         var taxRate = MarketRules.TaxRate(resource.Rules, now, price);
+        // voir rules, là c'est 0 pour le moment
         var proceeds = Math.Round(price * request.Quantity * (1 - taxRate), 2);
-
+            // le ,2 c'est le nombre de décimal après la virgule// proceeds = revenu de la vente ici.
        
         var costBasis = 0m;  
         var maxProfit = 0m;  
@@ -117,26 +125,35 @@ public class TradeService
             var bestPrice = BestPriceSince(resource, lot.BoughtAt);
 
             costBasis += taken * lot.BuyPrice;
+            // coût des carottes que je vend atm.
             maxProfit += taken * (bestPrice - lot.BuyPrice);
+            // Best profit possible pour les dites carrotes que j'ai sell.
 
             lot.Quantity -= taken;
+            // retire la quantité de carotte du lot le plus vieux.
             remaining -= taken;
+            // passe au lot suivant si y'a encore des carotte à vendre.
         }
 
-        holding.Lots.RemoveAll(lot => lot.Quantity == 0);
+        holding.Lots.RemoveAll(lot => lot.Quantity == 0); 
+        // remove les lots qui sont maintenant vide
+        
         if (holding.Lots.Count == 0)
             user.Portfolio.Remove(holding);
-
+        // above : si y'a plus rien, remove le principe des carottes du portefolio du joueur.
+        
         user.Balance += proceeds;
 
         var profit = Math.Round(proceeds - costBasis, 2);
-
+        
       
         decimal? efficiency = maxProfit > 0 ? Math.Round(profit / maxProfit, 4) : null;
 
         var transaction = NewTransaction(request, resource, TransactionType.Sell, price, now);
+        
         transaction.Profit = profit;
         transaction.Efficiency = efficiency;
+        
         return transaction;
     }
 
