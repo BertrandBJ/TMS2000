@@ -1,0 +1,9 @@
+
+  services:
+    tms2000.server:
+      environment:
+        - ASPNETCORE_ENVIRONMENT=Production
+      restart: unless-stopped
+
+    tms2000.mongodb:
+      restart: unless-stopped

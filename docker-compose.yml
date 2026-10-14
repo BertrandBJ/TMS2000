@@ -1,0 +1,68 @@
+﻿services: 
+  tms2000.server: #nom du service, sert de nom d'hote réseau, l'intérêt est que les conteneurs vont pouvoir communiquer
+    #en utilisant le nom du service plutôt que l'ip (fonctionne qu'en interne entre les conteneurs).
+    image: tms2000.server #nom de l'image, sinon il donne un nom auto, avec le build plus bas, je lui dit de créer une nouvelle image et pas en prendre une déjà faite en ligne
+    build: 
+      context: . # Donne les accès aux files pour docker. (. => all à la racine ou est le yaml).
+      dockerfile: TMS2000.Server/Dockerfile # ou est le dockerfile à use pour le build.
+    ports: # Format ports:ports <=> port_machine:port_conteneur. ${xx} => va chercher la valeur de xx dans le .env.
+      - "${API_PORT}:8080"
+    depends_on:
+      tms2000.mongodb:
+        condition: service_healthy
+        # avant de lancer le service => lance d'abords le conteneur mongodb (warning => mongodb à l'interieur est pas forcément up en même temps).
+    environment:
+      - ConnectionStrings__MongoDb=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@tms2000.mongodb:27017 # __ == : en C# d'ou l'écriture weird, on va les utiliser ensuite en C#.
+      - MongoSettings__DatabaseName=${MONGO_DATABASE}
+      - Jwt__Secret=${JWT_SECRET}
+      - Jwt__ExpiryHours=${JWT_EXPIRY_HOURS}
+      - Jwt__RefreshTokenDays=${JWT_REFRESH_TOKEN_DAYS}
+      - PriceEngine__TickIntervalSeconds=${PRICE_TICK_SECONDS}
+    healthcheck:
+      test: curl -f http://localhost:8080/health || exit 1 #curl est installé dans le dockerfile de .server.
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+# environment => ce sont les variables qui vont aller DANS le conteneur au démarrage, cela correspond ici à la connection du conteneur server à mongodb.
+# btw comme vu plus haut il utilise le nom du service tms2000.mongodb et pas l'adresse ip, because relation interne.
+  # la synthax ici est spécifique pour que du code C# puisse utiliser mangoDB (qui est en JS). 
+  
+  tms2000.mongodb:
+    image: mongo:7 # du coup ici on build pas, on prend l'image mongodb de base.
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    environment: # variable à passer dans le conteneur, native à l'image mongo:7 de base.
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+    volumes:
+      - mongo-data:/data/db # mongo-data => nom du volume qui stock en dehors du docker (sur machine host). /data/db => dans le docker, lieu de stockage dans le docker.
+    
+    # j'ai pas ajouté de port dans le compose de base, ils sont dans dev et autre.
+    
+  tms2000.console:
+    image: tms2000.console
+    build:
+      context: .
+      dockerfile: TMS2000.Console/Dockerfile
+    depends_on:
+       tms2000.mongodb:
+         condition: service_healthy
+    environment:
+      - ConnectionStrings__MongoDb=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@tms2000.mongodb:27017
+      - MongoSettings__DatabaseName=${MONGO_DATABASE}
+      - Seed__AdminEmail=${SEED_ADMIN_EMAIL}
+      - Seed__AdminPassword=${SEED_ADMIN_PASSWORD}
+      - Seed__PlayerEmail=${SEED_PLAYER_EMAIL}
+      - Seed__PlayerPassword=${SEED_PLAYER_PASSWORD}
+    profiles:
+      - seed # => le service est exclus d'un docker compose classic, il faut spécifier via docker compose --profile seed up. il va service seulement à seeder la bdd.
+    
+    
+volumes: # en dehors des déclarations de service, là je déclare mes volumes, ici y'a juste les datas de la bdd à save sur ma machine.
+  mongo-data:
