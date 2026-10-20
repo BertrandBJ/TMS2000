@@ -1,0 +1,54 @@
+# Pipeline CI de TMS2000 : compilation puis tests d'intégration contre une vraie MongoDB.
+# Le projet MAUI (TMS2000.Mobile) est volontairement exclu : l'image .NET n'a pas le workload MAUI.
+
+stages:
+  - build
+  - quality
+  - test
+
+default:
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  tags:
+    - uha40-salle-102                     # tag gitlab du runner de la salle 102 de l'uha.
+  cache:
+    key: nuget-packages           # clé fixe : restore complète ce qui manque, le cache sert juste à aller plus vite
+    paths:
+      - .nuget/packages/
+variables:
+  NUGET_PACKAGES: "$CI_PROJECT_DIR/.nuget/packages"   # paquets NuGet dans le dossier du projet, pour pouvoir les cacher
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+
+build:
+  stage: build
+  script:
+    - dotnet build TMS2000.Tests --configuration Release
+    - dotnet build TMS2000.Console --configuration Release # on build le seeder as well pour voir si il fonctionne, les autres partie du program sont linked à Tests.
+
+Quality:
+  stage: quality
+  script:
+    # Vérifie le formatage sans rien modifier : le job échoue si un fichier n'est pas conforme.
+    # Projet par projet : la solution contient TMS2000.Mobile (MAUI), qui ne se restaure pas dans cette image.
+  
+    - dotnet format TMS2000.Shared --verify-no-changes  --verbosity diagnostic
+    - dotnet format TMS2000.Core --verify-no-changes --verbosity diagnostic
+    - dotnet format TMS2000.Server --verify-no-changes  --verbosity diagnostic
+    - dotnet format TMS2000.Console --verify-no-changes --verbosity diagnostic
+    - dotnet format TMS2000.Tests --verify-no-changes --verbosity diagnostic
+
+integration-tests:
+  stage: test
+  services:
+    - name: mongo:7
+      alias: mongo                # nom d'hôte du service Mongo vu depuis le job
+  variables:
+    TMS2000_TEST_MONGO: "mongodb://mongo:27017"   # lu par TestApiFactory, remplace le défaut localhost:27018
+  script:
+    - dotnet test TMS2000.Tests --configuration Release
+      --logger "console;verbosity=normal"
+      --logger "junit;LogFilePath=TestResults/junit.xml"
+  artifacts:
+    when: always                  # rapport conservé même si des tests échouent
+    reports:
+      junit: TMS2000.Tests/TestResults/junit.xml

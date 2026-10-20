@@ -17,6 +17,8 @@ public class ResourceRepository
     private static readonly ProjectionDefinition<Resource> WithoutHistory =
         Builders<Resource>.Projection.Exclude(r => r.PriceHistory);
 
+    public async Task<List<Resource>> GetByIdsAsync(IEnumerable<string> ids) => await _resources.Find(Builders<Resource>.Filter.In(r => r.Id, ids)).ToListAsync();
+
     public ResourceRepository(IMongoDatabase database)
     {
         _resources = database.GetCollection<Resource>(MongoCollections.Resources);

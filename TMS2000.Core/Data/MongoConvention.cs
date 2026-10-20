@@ -19,7 +19,7 @@ public static class MongoConventions
             new EnumRepresentationConvention(BsonType.String),
             new IgnoreExtraElementsConvention(true)
         };
-        
+
         ConventionRegistry.Register("TMS2000", pack, _ => true); // meaning => applique ça à tout ce qui est dans la BDD.
 
         BsonSerializer.RegisterSerializer(new DecimalSerializer(BsonType.Decimal128)); // fix le problème des décimals mongoDB.

@@ -18,7 +18,7 @@ public class AuthService
     private readonly string _jwtSecret;
     private readonly int _jwtExpiryHours;
     private readonly int _jwtRefreshTokenDays;
- 
+
 
     public AuthService(UserRepository userRepository, string jwtSecret, int jwtExpiryHours, int jwtRefreshTokenDays)
     {
@@ -28,31 +28,69 @@ public class AuthService
         _jwtRefreshTokenDays = jwtRefreshTokenDays;
     }
 
+    // champs et constructeur : inchangés
+
     public async Task<LoginResponse> LoginAsync(string email, string password)
     {
-        var normalizedEmail = EmailNormalizer.Normalize(email);
-        var user = await _userRepository.GetByEmailAsync(normalizedEmail); // GetByEmailAsync provient de UsersRepository.cs.
+        var user = await _userRepository.GetByEmailAsync(EmailNormalizer.Normalize(email));
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
             throw new InvalidCredentialsException();
-        
+
         var now = DateTime.UtcNow;
-        var accessTokenExpirationDate = now.AddHours(_jwtExpiryHours);
-        var accessToken = GenerateJwt(user, accessTokenExpirationDate);
-        var refreshTokenExpirationDate = now.AddDays(_jwtRefreshTokenDays);
-        var refreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        var (refreshToken, storedToken) = CreateRefreshToken(now);
+        await _userRepository.AddRefreshTokenAsync(user.Id, storedToken);
+
+        return BuildResponse(user, refreshToken, storedToken.ExpiresAt, now);
+    }
+
+    public async Task<LoginResponse> RefreshAsync(string refreshToken)
+    {
+        var now = DateTime.UtcNow;
+        var (newRefreshToken, newStoredToken) = CreateRefreshToken(now);
+
+        // Échange atomique : l'ancien token est consommé, le nouveau prend sa place
+        // Pas oublier de hash le token qu'on send dans la methode, celui stored est déjà hashed, pas celle du client.
+        var user = await _userRepository.RotateRefreshTokenAsync(
+                       RefreshTokenGenerator.Hash(refreshToken), newStoredToken, now)
+                   ?? throw new InvalidRefreshTokenException();
+
+        return BuildResponse(user, newRefreshToken, newStoredToken.ExpiresAt, now);
+    }
+
+    public async Task LogoutAsync(string refreshToken) =>
+
+        await _userRepository.RemoveRefreshTokenAsync(RefreshTokenGenerator.Hash(refreshToken));
+
+    // Le token envoyé au client, et sa version stockée en base (le hash), also note : déclaration d'un tuple, return un tuple.
+    private (string Token, RefreshToken Stored) CreateRefreshToken(DateTime now)
+    {
+        var token = RefreshTokenGenerator.Generate();
+        var stored = new RefreshToken
+        {
+            TokenHash = RefreshTokenGenerator.Hash(token),
+            CreatedAt = now,
+            ExpiresAt = now.AddDays(_jwtRefreshTokenDays)
+        };
+        return (token, stored);
+    }
+
+    // La réponse commune au login et au refresh : nouveau JWT + refresh token
+    private LoginResponse BuildResponse(User user, string refreshToken, DateTime refreshExpiresAt, DateTime now)
+    {
+        var accessExpiresAt = now.AddHours(_jwtExpiryHours);
 
         return new LoginResponse(
-
-            AccessToken: accessToken,
-            AccessTokenExpirationDate: accessTokenExpirationDate,
-            RefreshToken : refreshToken,
-            RefreshTokenExpirationDate : refreshTokenExpirationDate,
-            Role : user.Role
-        );
+            AccessToken: GenerateJwt(user, accessExpiresAt),
+            AccessTokenExpirationDate: accessExpiresAt,
+            RefreshToken: refreshToken,
+            RefreshTokenExpirationDate: refreshExpiresAt,
+            Role: user.Role);
     }
-    
-    private string GenerateJwt(User user,DateTime expiresAt)
+
+    // GenerateJwt : inchangé
+
+    private string GenerateJwt(User user, DateTime expiresAt)
     {
         var claims = new[] 
             
@@ -66,8 +104,8 @@ public class AuthService
 
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecret));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256); 
-        
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
         // above : ici on définis comment on va signer la key. c'est juste one configuration, le calcule lui est fait à l'écriture du token below.
 
         var token = new JwtSecurityToken(
@@ -75,8 +113,8 @@ public class AuthService
             expires: expiresAt,
             signingCredentials: creds);
 
-        return new JwtSecurityTokenHandler().WriteToken(token); 
-        
+        return new JwtSecurityTokenHandler().WriteToken(token);
+
         // c'est là que l'object token devient une chaine de character en format texte avec un header,payload,signature encodé en base64url (variable du base64 sans +/).
         // c'est ici que la signature est calculé.
     }
