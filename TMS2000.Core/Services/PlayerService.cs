@@ -21,7 +21,7 @@ public class PlayerService
         var user = await _userRepository.GetByIdAsync(userId)
                    ?? throw new NotFoundException("Joueur introuvable.");
 
-    
+
         var resources = await _resourceRepository.GetAllWithoutHistoryAsync();
         var currentPrices = resources.ToDictionary(r => r.Id, r => r.CurrentPrice);
 

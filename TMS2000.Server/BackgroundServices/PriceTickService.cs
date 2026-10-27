@@ -42,6 +42,7 @@ public class PriceTickService : BackgroundService
             catch (Exception exception)
             {
                 // Un tick raté ne doit pas tuer le service : on log et on attend le suivant
+
                 _logger.LogError(exception, "Échec du tick de prix");
             }
         }

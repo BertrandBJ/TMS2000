@@ -16,7 +16,7 @@ var database = new MongoClient(Required("ConnectionStrings__MongoDb"))
 await MongoIndexes.EnsureAllAsync(database);
 // je devrai changer le nom de la methode, parce que c'est pas ouf descriptif (c'est pour email/user => croissant/unique)//
 
-var resources = database.GetCollection<Resource>(MongoCollections.Resources); 
+var resources = database.GetCollection<Resource>(MongoCollections.Resources);
 var users = database.GetCollection<User>(MongoCollections.Users);
 
 var now = DateTime.UtcNow;

@@ -7,33 +7,34 @@ public class User
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty; // "Admin" ou "Player"
-    
+
     public decimal Balance { get; set; }
-    
+
     public int Version { get; set; }
-    
+
     public List<Holding> Portfolio { get; set; } = new(); // whatever shit you have
-    
+
     public List<Transaction> Transactions { get; set; } = new(); // sans ça pas d'imbrication right.
 
     public List<RefreshToken> RefreshTokens { get; set; } = new();
+
 }
 
 public class Holding
 {
     public string ResourceId { get; set; } = string.Empty; // 
-    
+
     public string ResourceName { get; set; } = string.Empty; // whatever name the item is.
-    
+
     public List<Lot> Lots { get; set; } = new(); // dedans on va mettre la quantité/le price d'achat 
 }
 
 public class Lot // correspond à un achat en gros.
 {
-    public int Quantity { get; set; } 
-    
-    public decimal BuyPrice { get; set; } 
-    
+    public int Quantity { get; set; }
+
+    public decimal BuyPrice { get; set; }
+
     public DateTime BoughtAt { get; set; }
 }
 
@@ -52,6 +53,7 @@ public class Transaction
     public string? RejectReason { get; set; }
     public decimal? Profit { get; set; }
     public decimal? Efficiency { get; set; }
+    public decimal? OfflineBonus { get; set; }
 }
 
 public class RefreshToken
@@ -60,5 +62,5 @@ public class RefreshToken
     public DateTime CreatedAt { get; set; }
     public DateTime ExpiresAt { get; set; }
     public DateTime? RevokedAt { get; set; }
-    
+
 }

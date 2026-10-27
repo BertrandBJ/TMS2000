@@ -17,6 +17,8 @@ public class ResourceRepository
     private static readonly ProjectionDefinition<Resource> WithoutHistory =
         Builders<Resource>.Projection.Exclude(r => r.PriceHistory);
 
+    public async Task<List<Resource>> GetByIdsAsync(IEnumerable<string> ids) => await _resources.Find(Builders<Resource>.Filter.In(r => r.Id, ids)).ToListAsync();
+
     public ResourceRepository(IMongoDatabase database)
     {
         _resources = database.GetCollection<Resource>(MongoCollections.Resources);
@@ -73,4 +75,11 @@ public class ResourceRepository
 
         return result.ModifiedCount > 0;
     }
+
+    // Snapshot du mobile : toutes les ressources avec leurs N derniers points de prix.
+    // L'historique complet peut atteindre 5000 points par ressource : on ne charge que la fin.
+    public async Task<List<Resource>> GetAllWithRecentPricesAsync(int pricePointCount) =>
+        await _resources.Find(Builders<Resource>.Filter.Empty)
+            .Project<Resource>(Builders<Resource>.Projection.Slice(r => r.PriceHistory, -pricePointCount))
+            .ToListAsync();
 }

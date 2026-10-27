@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TMS2000.Core;
 using TMS2000.Core.Services;
 using TMS2000.Shared.DTO.Admin;
+using TMS2000.Shared;
 
 namespace TMS2000.Server.Controllers;
 

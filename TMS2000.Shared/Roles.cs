@@ -1,4 +1,4 @@
-namespace TMS2000.Core;
+namespace TMS2000.Shared;
 
 public static class Roles
 {

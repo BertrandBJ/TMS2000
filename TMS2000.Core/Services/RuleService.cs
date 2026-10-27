@@ -9,7 +9,7 @@ namespace TMS2000.Core.Services;
 
 public class RuleService
 {
-    
+
     private static readonly TimeSpan StartTolerance = TimeSpan.FromMinutes(5);
 
     private readonly ResourceRepository _resourceRepository;
@@ -24,7 +24,7 @@ public class RuleService
         var now = DateTime.UtcNow;
         var resources = await _resourceRepository.GetAllWithoutHistoryAsync();
 
-        
+
         var rules = resources
             .SelectMany(resource => resource.Rules.Select(rule => (ResourceId: resource.Id, Rule: rule)))
             .Where(entry => entry.Rule.EndsAt > now)
@@ -56,7 +56,7 @@ public class RuleService
         var conditionOperator = request.Condition.Operator!.Value;
 
         // 400 : cohérence de la demande
-        
+
         if (startsAt < now - StartTolerance)
             throw new BadRequestException("La date de début ne peut pas être dans le passé.");
 
@@ -77,13 +77,13 @@ public class RuleService
             var currentRules = resource.Rules.Where(rule => rule.EndsAt > now).ToList();
 
             // 409 : le même effet est déjà prévu sur une période qui chevauche
-            
+
             if (currentRules.Any(rule => rule.Effect.Type == effectType
                                          && MarketRules.Overlaps(rule.StartsAt, rule.EndsAt, startsAt, endsAt)))
                 throw new ConflictException($"{resource.Name} a déjà une règle {effectType} sur une période qui chevauche celle-ci.");
 
             // 422 : nombre maximum de règles actives ou à venir
-            
+
             if (currentRules.Count >= GameSettings.MaxRulesPerResource)
                 throw new BusinessRuleException($"{resource.Name} a déjà {GameSettings.MaxRulesPerResource} règles actives ou à venir (maximum atteint).");
         }
@@ -110,7 +110,7 @@ public class RuleService
     }
 
     // La valeur dépend du type d'effet
-    
+
     private static decimal? ValidateEffectValue(EffectType type, decimal? value)
     {
         switch (type)

@@ -1,0 +1,15 @@
+# Environnement de test : seul MongoDB est utilisé par les tests d'intégration.
+# L'API est démarrée en mémoire par les tests (WebApplicationFactory).
+
+services:
+  tms2000.mongodb:
+    ports:
+      - "127.0.0.1:${MONGO_PORT}:27017"   # 27018 en test : ne gêne pas le Mongo de dev (27017)
+    command: ["mongod", "--quiet"]
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=
+      - MONGO_INITDB_ROOT_PASSWORD=
+
+  tms2000.server:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Test

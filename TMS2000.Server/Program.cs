@@ -32,6 +32,7 @@ var jwtRefreshTokenDays = int.Parse(Required(builder.Configuration, "Jwt:Refresh
 #region Services
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+builder.Logging.AddFilter("Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddleware", LogLevel.None);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>     // fait passer le token dans les request swagger, sinon les routes sont opens pour tous//
 {
@@ -57,10 +58,8 @@ builder.Services.AddSwaggerGen(options =>     // fait passer le token dans les r
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
-builder.Services.AddSingleton<IMongoClient>(sp => new MongoClient(mongoConnectionString));
-// singleton => une seul instance pour toutes la vie du programme. also c'est là qu'est la connectionstring à mangoDB qui provient du .env.
-builder.Services.AddScoped(sp => sp.GetRequiredService<IMongoClient>().GetDatabase(mongoDatabaseName)); 
-// bcp plus easy que de faire un scope avec les variables inside.
+builder.Services.AddSingleton<IMongoClient>(sp => new MongoClient(mongoConnectionString));// singleton => une seul instance pour toutes la vie du programme. also c'est là qu'est la connectionstring à mangoDB qui provient du .env.
+builder.Services.AddScoped(sp => sp.GetRequiredService<IMongoClient>().GetDatabase(mongoDatabaseName)); // bcp plus easy que de faire un scope avec les variables inside.
 
 builder.Services.AddHealthChecks()
     .AddMongoDb(
@@ -72,12 +71,10 @@ builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped(sp =>
     new AuthService(sp.GetRequiredService<UserRepository>(), jwtSecret, jwtExpiryHours, jwtRefreshTokenDays));
 
-
-
 builder.Services.AddScoped<ResourceRepository>();
-
 builder.Services.AddScoped<MarketService>();
 builder.Services.AddScoped<PriceEngineService>();
+builder.Services.AddScoped<SyncService>();
 builder.Services.AddScoped<RuleService>();
 builder.Services.AddScoped<TradeService>();
 builder.Services.AddScoped<AdminUserService>();
@@ -123,7 +120,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseExceptionHandler();
-app.UseStatusCodePages();          
+app.UseStatusCodePages();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers(); // précision ici => mapcontrollers doit être après auth et author. sinon les 2 middlesware d'auth n'ont jamais l'occassion de run pendant une request.
@@ -131,14 +128,18 @@ app.MapHealthChecks("/health").AllowAnonymous(); // allow healthcheck sans besoi
 
 
 //below : appel mes indexes mongoDB.
+
 var mongoClient = app.Services.GetRequiredService<IMongoClient>(); // Singleton, pas besoin de scope
 await MongoIndexes.EnsureAllAsync(mongoClient.GetDatabase(mongoDatabaseName)); // index créés avant la 1re requête
 
 #endregion
- 
+
 app.Run();
 
 static string Required(IConfiguration config, string key) =>
     string.IsNullOrWhiteSpace(config[key])
         ? throw new InvalidOperationException($"La configuration '{key}' est manquante ou vide.")
         : config[key]!;
+
+
+public partial class Program { }
