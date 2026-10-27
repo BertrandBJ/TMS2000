@@ -19,7 +19,6 @@ obj/
 .env
 .env.*
 !.env.*.example
-
 # NuGet
 *.nupkg
 packages/

@@ -6,7 +6,7 @@ namespace TMS2000.Core.Helper;
 
 public static class MarketRules
 {
-    
+
     public static bool IsActive(MarketRule rule, DateTime at) =>
         rule.StartsAt <= at && at < rule.EndsAt;
 
@@ -19,7 +19,7 @@ public static class MarketRules
         _ => false
     };
 
-    
+
     public static List<MarketRule> Triggered(IEnumerable<MarketRule> rules, DateTime at, decimal price) =>
         rules.Where(rule => IsActive(rule, at) && IsConditionMet(rule.Condition, price)).ToList();
 
@@ -29,7 +29,7 @@ public static class MarketRules
     public static bool CanSell(IEnumerable<MarketRule> rules, DateTime at, decimal price) =>
         !Triggered(rules, at, price).Any(rule => rule.Effect.Type == EffectType.SellBlocked);
 
-    
+
     public static int? MaxQuantity(IEnumerable<MarketRule> rules, DateTime at, decimal price)
     {
         var limits = Triggered(rules, at, price)
@@ -40,17 +40,17 @@ public static class MarketRules
         return limits.Count == 0 ? null : limits.Min();
     }
 
-    
+
     public static decimal TaxRate(IEnumerable<MarketRule> rules, DateTime at, decimal price) =>
         Triggered(rules, at, price)
             .Where(rule => rule.Effect.Type == EffectType.TransactionTax && rule.Effect.Value.HasValue)
             .Sum(rule => rule.Effect.Value!.Value) / 100m;
 
-    
+
     public static bool Overlaps(DateTime startA, DateTime endA, DateTime startB, DateTime endB) =>
         startA < endB && startB < endA;
 
-    
+
     public static string Describe(MarketRule rule)
     {
         var effect = rule.Effect.Type switch

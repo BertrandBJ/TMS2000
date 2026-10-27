@@ -7,23 +7,30 @@ namespace TMS2000.Core.Data;
 
 public static class MongoConventions
 {
-    private static bool _registered; // pour pas le faire 2 fois (quand il fait register la 1ere fois, il passe le truc en true//
+    private static readonly object RegistrationLock = new();
+    private static bool _registered; // pour pas le faire 2 fois
 
     public static void Register()
     {
-        if (_registered) return;
+        // Un seul thread à la fois dans ce bloc : la vérification et l'enregistrement
+        // deviennent une seule étape, impossible à couper en deux par un autre thread.
 
-        var pack = new ConventionPack
+        lock (RegistrationLock)
         {
-            new CamelCaseElementNameConvention(),
-            new EnumRepresentationConvention(BsonType.String),
-            new IgnoreExtraElementsConvention(true)
-        };
-        
-        ConventionRegistry.Register("TMS2000", pack, _ => true); // meaning => applique ça à tout ce qui est dans la BDD.
+            if (_registered) return;
 
-        BsonSerializer.RegisterSerializer(new DecimalSerializer(BsonType.Decimal128)); // fix le problème des décimals mongoDB.
+            var pack = new ConventionPack
+            {
+                new CamelCaseElementNameConvention(),
+                new EnumRepresentationConvention(BsonType.String),
+                new IgnoreExtraElementsConvention(true)
+            };
 
-        _registered = true;
+            ConventionRegistry.Register("TMS2000", pack, _ => true); // applique ça à tout ce qui est dans la BDD.
+
+            BsonSerializer.RegisterSerializer(new DecimalSerializer(BsonType.Decimal128)); // fix le problème des décimals mongoDB.
+
+            _registered = true;
+        }
     }
 }

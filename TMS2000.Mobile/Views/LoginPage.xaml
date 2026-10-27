@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    
+    x:Class="TMS2000.Mobile.Views.LoginPage"  
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModels="clr-namespace:TMS2000.Mobile.ViewModels" 
+    x:DataType="viewModels:LoginViewModel"
+    Title="Connexion">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="12" VerticalOptions="Center">
+
+            <Label Text="TMS2000" FontSize="32" FontAttributes="Bold" HorizontalOptions="Center" />
+
+            <Entry Placeholder="Email"
+                   Keyboard="Email"
+                   Text="{Binding Email}" />
+
+            <Entry Placeholder="Mot de passe"
+                   IsPassword="True"
+                   Text="{Binding Password}"
+                   ReturnCommand="{Binding LoginCommand}" />
+
+            <Button Text="Se connecter"
+                    Command="{Binding LoginCommand}" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}" />
+
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="Red"
+                   HorizontalTextAlignment="Center" />
+
+            <Label Text="Adresse de l'API" Margin="0,24,0,0" FontSize="12" />
+            <Entry Keyboard="Url"
+                   Text="{Binding ApiBaseUrl}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

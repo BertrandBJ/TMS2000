@@ -1,16 +1,15 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TMS2000.Core;
 using TMS2000.Core.Services;
 using TMS2000.Server.Extensions;
 using TMS2000.Shared.DTO.Trades;
+using TMS2000.Shared;
 
 namespace TMS2000.Server.Controllers;
 
 [ApiController]
 [Route("api/trades")]
-[Authorize(Roles = Roles.Player)] 
-// un Admin reçoit 403
+[Authorize(Roles = Roles.Player)] // un Admin reçoit 403
 public class TradesController : ControllerBase
 {
     private readonly TradeService _tradeService;
