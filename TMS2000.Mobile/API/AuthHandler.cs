@@ -12,7 +12,7 @@ namespace TMS2000.Mobile.API;
 public class AuthHandler : DelegatingHandler
 {
     // static : partagé par toutes les instances de AuthHandler → un seul refresh à la fois dans toute l'app.
-    
+
     private static readonly SemaphoreSlim RefreshLock = new(1, 1);
     private readonly TokenStore _tokenStore;
     private readonly AuthApiClient _authApiClient;
@@ -30,13 +30,13 @@ public class AuthHandler : DelegatingHandler
         if (session is null)
         {
             // Pas connecté : on envoie sans token, le serveur répondra 401.
-            
+
             return await base.SendAsync(request, cancellationToken);
         }
 
         SetBearerToken(request, session.AccessToken);
-        
-        
+
+
         HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
 
         if (response.StatusCode != HttpStatusCode.Unauthorized)
@@ -48,7 +48,7 @@ public class AuthHandler : DelegatingHandler
         if (refreshedAccessToken is null)
         {
             // Refresh impossible : on laisse remonter le 401 d'origine.
-            
+
             return response;
         }
 
@@ -58,7 +58,7 @@ public class AuthHandler : DelegatingHandler
     }
 
     // Renvoie le nouvel access token, ou null si la session est morte.
-    
+
     private async Task<string?> TryRefreshAsync(string rejectedAccessToken, CancellationToken cancellationToken)
     {
         await RefreshLock.WaitAsync(cancellationToken);

@@ -3,8 +3,7 @@ using TMS2000.Shared.DTO.Auth;
 
 namespace TMS2000.Mobile.Services;
 
-// Garde la session (tokens + rôle) dans SecureStorage, chiffré par le Keystore Android.
-// Une copie reste en mémoire pour ne pas relire le stockage chiffré à chaque requête HTTP.
+
 
 public class TokenStore
 {
@@ -12,6 +11,7 @@ public class TokenStore
 
     private LoginResponse? _currentSession;
     private bool _hasLoadedFromStorage;
+    public event EventHandler? SessionCleared;
 
     public async Task<LoginResponse?> GetSessionAsync()
     {
@@ -29,9 +29,8 @@ public class TokenStore
         }
         catch (Exception)
         {
-            // Stockage illisible (ex. clé de chiffrement perdue après une réinstallation) :
-            // on efface et on repart sans session, l'utilisateur se reconnectera.
-            
+
+
             SecureStorage.Default.Remove(SessionStorageKey);
             _currentSession = null;
         }
@@ -53,5 +52,9 @@ public class TokenStore
         SecureStorage.Default.Remove(SessionStorageKey);
         _currentSession = null;
         _hasLoadedFromStorage = true;
+        SessionCleared?.Invoke(this, EventArgs.Empty);
+
+        // alors ça veut dire : on a clean la session, invoke sessionCleared, l'event nommé "SessionCleared". qui signale à tout ceux en on besoin que la session est cleared.
+        // les paramètre sont le sender, ici "this" donc le TokenStore. et l'argument est empty, on a pas de message à faire passer
     }
 }

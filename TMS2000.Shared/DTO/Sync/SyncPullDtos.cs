@@ -10,7 +10,7 @@ namespace TMS2000.Shared.DTO.Sync;
 
 
 public record GameSnapshot(
-    DateTime ServerTime,                 // heure du serveur : permet au mobile de repérer une horloge de téléphone décalée
+    DateTime ServerTime,                 // heure du serveur : permet au mobile de repérer une horloge de téléphone not sync.
     DateTime NextTickAt,                 // prochain changement de prix : le mobile rafraîchit le marché après cette date
     SnapshotPlayerDto Player,
     List<SnapshotResourceDto> Resources);
@@ -25,6 +25,7 @@ public record SnapshotResourceDto(
     string Id,
     string Name,
     decimal CurrentPrice,
+    PriceMode Mode,
     List<PricePointDto> RecentPrices,    // les derniers points seulement, pour afficher une courbe hors ligne
     List<SnapshotRuleDto> Rules);        // règles actives ET à venir, avec leur condition et leur effet
 

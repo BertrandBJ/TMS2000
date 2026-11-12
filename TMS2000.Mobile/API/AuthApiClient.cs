@@ -1,6 +1,5 @@
 using System.Net.Http.Json;
 using TMS2000.Shared.DTO.Auth;
-using TMS2000.Mobile.API;
 namespace TMS2000.Mobile.API;
 
 // pas de bearer ou de authhander ici, c'est pour le loging donc il faut que ce soit publique access.
@@ -10,7 +9,7 @@ public class AuthApiClient
     private readonly ApiSettings _apiSettings;
 
     // Le HttpClient est fourni par IHttpClientFactory, déjà configuré (timeout).
-    
+
     public AuthApiClient(HttpClient httpClient, ApiSettings apiSettings)
     {
         _httpClient = httpClient;

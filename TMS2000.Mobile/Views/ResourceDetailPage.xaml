@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TMS2000.Mobile.Views.ResourceDetailPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModels="clr-namespace:TMS2000.Mobile.ViewModels"
+    xmlns:views="clr-namespace:TMS2000.Mobile.Views"
+    x:DataType="viewModels:ResourceDetailViewModel"
+    Title="{Binding ResourceName}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="10">
+
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Grid.Column="0"
+                       Text="{Binding CurrentPrice, StringFormat='{0:N0} $'}"
+                       FontSize="26"
+                       FontAttributes="Bold" />
+                <Label Grid.Column="1"
+                       Text="{Binding PriceModeDescription}"
+                       TextColor="Gray"
+                       VerticalOptions="Center"
+                       HorizontalOptions="End"
+                       HorizontalTextAlignment="End" />
+            </Grid>
+
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Grid.Column="0"
+                       Text="{Binding Balance, StringFormat='Solde : {0:N0} $'}" />
+                <Label Grid.Column="1"
+                       Text="{Binding OwnedQuantity, StringFormat='Possédé : {0}'}"
+                       HorizontalOptions="End"
+                       HorizontalTextAlignment="End" />
+            </Grid>
+
+            <Border Padding="12"
+                    Stroke="Gray"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 10">
+                <VerticalStackLayout Spacing="8">
+                    <Entry Placeholder="Quantité"
+                           Keyboard="Numeric"
+                           ReturnType="Done"
+                           Text="{Binding QuantityText}" />
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <Button Grid.Column="0"
+                                Text="Acheter"
+                                Command="{Binding BuyCommand}" />
+                        <Button Grid.Column="1"
+                                Text="Vendre"
+                                Command="{Binding SellCommand}" />
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <Button Grid.Column="0"
+                                Text="Acheter le max"
+                                Command="{Binding BuyMaxCommand}" />
+                        <Button Grid.Column="1"
+                                Text="Tout vendre"
+                                Command="{Binding SellAllCommand}" />
+                    </Grid>
+
+                    <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                       IsVisible="{Binding IsBusy}" />
+
+                    <Label Text="{Binding ResultMessage}"
+                           TextColor="Green"
+                           HorizontalTextAlignment="Center">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label"
+                                         Binding="{Binding IsLoss}"
+                                         Value="True">
+                                <Setter Property="TextColor" Value="DarkOrange" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+
+                    <Label Text="{Binding ErrorMessage}"
+                           TextColor="Red"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </Border>
+
+            <GraphicsView x:Name="PriceChartView"
+                          HeightRequest="200" />
+
+            <Label Text="Règles"
+                   FontSize="18"
+                   FontAttributes="Bold" />
+            <Label Text="{Binding RulesDescription}" />
+
+            <Label Text="Mes dernières transactions"
+                   FontSize="18"
+                   FontAttributes="Bold" />
+            <Label Text="Aucune transaction sur cette ressource."
+                   TextColor="Gray"
+                   IsVisible="{Binding HasNoResourceTransactions}" />
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding ResourceTransactionRows}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:TransactionRow">
+                        <views:TransactionCardView />
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TMS2000.Mobile.Views.TransactionsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModels="clr-namespace:TMS2000.Mobile.ViewModels"
+    xmlns:views="clr-namespace:TMS2000.Mobile.Views"
+    x:DataType="viewModels:TransactionsViewModel"
+    Title="Historique">
+
+    <Grid RowDefinitions="Auto,*" Padding="16,8">
+
+        <Label Grid.Row="0"
+               Text="Aucune transaction pour l'instant."
+               TextColor="Gray"
+               IsVisible="{Binding HasNoTransactions}" />
+
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding TransactionRows}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="viewModels:TransactionRow">
+                    <views:TransactionCardView />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

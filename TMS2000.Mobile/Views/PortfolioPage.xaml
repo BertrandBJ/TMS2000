@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TMS2000.Mobile.Views.PortfolioPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModels="clr-namespace:TMS2000.Mobile.ViewModels"
+    x:DataType="viewModels:PortfolioViewModel"
+    Title="Portefeuille">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16,8" Spacing="12">
+
+            <Border Padding="12"
+                    Stroke="Gray"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 10">
+                <Grid ColumnDefinitions="*,Auto"
+                      RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                      RowSpacing="6"
+                      ColumnSpacing="8">
+
+                    <Label Grid.Row="0" Grid.ColumnSpan="2"
+                           Text="{Binding Email}"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+
+                    <Label Grid.Row="1" Grid.Column="0" Text="Solde" />
+                    <Label Grid.Row="1" Grid.Column="1"
+                           Text="{Binding Balance, StringFormat='{0:N0} $'}"
+                           FontAttributes="Bold"
+                           HorizontalOptions="End" HorizontalTextAlignment="End" />
+
+                    <Label Grid.Row="2" Grid.Column="0" Text="Profit réalisé (ventes)" />
+                    <Label Grid.Row="2" Grid.Column="1"
+                           Text="{Binding RealizedProfitDescription}"
+                           TextColor="{Binding RealizedProfitColor}"
+                           HorizontalOptions="End" HorizontalTextAlignment="End" />
+
+                    <Label Grid.Row="3" Grid.Column="0" Text="Efficacité moyenne" />
+                    <Label Grid.Row="3" Grid.Column="1"
+                           Text="{Binding AverageEfficiencyDescription}"
+                           TextColor="{Binding AverageEfficiencyColor}"
+                           HorizontalOptions="End" HorizontalTextAlignment="End" />
+
+                    <Label Grid.Row="4" Grid.ColumnSpan="2"
+                           Text="{Binding TradeCountDescription}"
+                           TextColor="Gray"
+                           FontSize="13" />
+                </Grid>
+            </Border>
+
+            <Label Text="Mes ressources"
+                   FontSize="18"
+                   FontAttributes="Bold" />
+
+            <Label Text="Aucune ressource possédée."
+                   TextColor="Gray"
+                   IsVisible="{Binding HasNoHoldings}" />
+
+            <VerticalStackLayout Spacing="6"
+                                 BindableLayout.ItemsSource="{Binding HoldingRows}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:HoldingRow">
+                        <Border Padding="12,8"
+                                Stroke="Gray"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 8">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0"
+                                       Text="{Binding ResourceName}"
+                                       FontSize="16"
+                                       FontAttributes="Bold" />
+                                <Label Grid.Column="1"
+                                       Text="{Binding Quantity}"
+                                       FontSize="16"
+                                       HorizontalOptions="End" HorizontalTextAlignment="End" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
