@@ -1,14 +1,9 @@
-# Analyse SonarQube Cloud de TMS2000 : build, tests avec couverture, puis envoi du rapport à Sonar.
-# Seuls les projets compilés entre "begin" et "end" sont analysés : TMS2000.Mobile (MAUI) n'est pas compilé,
-# donc pas analysé, comme dans la CI GitLab (pas de workload MAUI sur le runner).
 
 name: SonarQube
 
 on:
   push:
-    branches: [main, develop]
-  pull_request:
-    types: [opened, synchronize, reopened]
+    branches: [main]
 
 jobs:
   sonar:
