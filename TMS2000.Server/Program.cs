@@ -134,7 +134,7 @@ await MongoIndexes.EnsureAllAsync(mongoClient.GetDatabase(mongoDatabaseName)); /
 
 #endregion
 
-app.Run();
+await app.RunAsync();
 
 static string Required(IConfiguration config, string key) =>
     string.IsNullOrWhiteSpace(config[key])
