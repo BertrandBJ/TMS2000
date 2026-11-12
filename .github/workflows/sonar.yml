@@ -1,0 +1,63 @@
+# Analyse SonarQube Cloud de TMS2000 : build, tests avec couverture, puis envoi du rapport à Sonar.
+# Seuls les projets compilés entre "begin" et "end" sont analysés : TMS2000.Mobile (MAUI) n'est pas compilé,
+# donc pas analysé, comme dans la CI GitLab (pas de workload MAUI sur le runner).
+
+name: SonarQube
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  sonar:
+    runs-on: ubuntu-latest
+
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017            # Mongo joignable depuis le job sur localhost:27017
+
+    env:
+      TMS2000_TEST_MONGO: "mongodb://localhost:27017"   # lu par TestApiFactory, remplace le défaut localhost:27018
+      DOTNET_NOLOGO: "true"
+      DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0           # historique complet : Sonar s'en sert pour savoir quel code est nouveau (blame)
+
+      - uses: actions/setup-java@v4  # le scanner Sonar tourne sur Java
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Installer le scanner Sonar
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Build, tests et analyse
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # secret du repo GitHub, jamais en dur
+        run: |
+          dotnet sonarscanner begin \
+            /k:"BertrandBJ_TMS2000" \
+            /o:"bertrandbj" \
+            /d:sonar.token="$SONAR_TOKEN" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+
+          dotnet build TMS2000.Tests --configuration Release
+          dotnet build TMS2000.Console --configuration Release
+
+          # coverlet (déjà dans TMS2000.Tests.csproj) écrit la couverture au format OpenCover, que Sonar sait lire
+          dotnet test TMS2000.Tests --configuration Release --no-build \
+            --collect:"XPlat Code Coverage;Format=opencover"
+
+          dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
