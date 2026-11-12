@@ -9,9 +9,13 @@
     Title="Connexion">
 
     <ScrollView>
-        <VerticalStackLayout Padding="24" Spacing="12" VerticalOptions="Center">
+        <VerticalStackLayout Padding="24" 
+                             Spacing="12" 
+                             VerticalOptions="Center">
 
-            <Label Text="TMS2000" FontSize="32" FontAttributes="Bold" HorizontalOptions="Center" />
+            <Label Text="TMS2000" FontSize="32" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center" />
 
             <Entry Placeholder="Email"
                    Keyboard="Email"
@@ -38,4 +42,4 @@
 
         </VerticalStackLayout>
     </ScrollView>
-</ContentPage>
+</ContentPage>  

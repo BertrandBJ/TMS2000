@@ -18,7 +18,7 @@ public class SessionService
         _tokenStore = tokenStore;
     }
 
-    // Renvoie le rôle ("Player" ou "Admin") pour que l'app ouvre le bon Shell.
+
     public async Task<string> LoginAsync(string email, string password)
     {
         LoginResponse session = await _authApiClient.LoginAsync(email, password);
@@ -26,8 +26,8 @@ public class SessionService
         return session.Role;
     }
 
-    // Au démarrage de l'app : rôle de la session sauvegardée, ou null s'il faut afficher le login.
-    
+
+
     public async Task<string?> GetSavedSessionRoleAsync()
     {
         LoginResponse? savedSession = await _tokenStore.GetSessionAsync();
@@ -50,7 +50,7 @@ public class SessionService
     {
         LoginResponse? currentSession = await _tokenStore.GetSessionAsync();
 
-        // D'abord en local : l'utilisateur est déconnecté même si le serveur ne répond pas.
+
         _tokenStore.ClearSession();
 
         if (currentSession is null)

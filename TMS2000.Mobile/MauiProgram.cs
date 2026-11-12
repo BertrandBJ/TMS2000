@@ -25,19 +25,24 @@ public static class MauiProgram
         RegisterApiClients(builder.Services);
         RegisterViewModels(builder.Services);
         RegisterPages(builder.Services);
+        RegisterRoutes();
 
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
         return builder.Build();
     }
-    
+
     private static void RegisterServices(IServiceCollection services)
     {
         services.AddSingleton<AppNavigator>();
         services.AddTransient<SessionService>();
         services.AddSingleton<ApiSettings>();
         services.AddSingleton<TokenStore>();
+        services.AddSingleton<SnapshotStore>();
+        services.AddTransient<SnapshotService>();
+        services.AddSingleton<MarketTickLoop>();
+        services.AddTransient<TradeService>();
     }
 
     // Les deux clients HTTP : même configuration de base, seul ApiClient passe par l'AuthHandler.
@@ -45,15 +50,15 @@ public static class MauiProgram
     {
         services.AddTransient<AuthHandler>(); // transient => la factory exige un handle neuf chaque fois qu'elle build
 
-        services.AddHttpClient<AuthApiClient>(ConfigureApiHttpClientTimeout); 
-        
+        services.AddHttpClient<AuthApiClient>(ConfigureApiHttpClientTimeout);
+
         // => le nom de ce type de synthax c'est "method groupe". ça dit : 
         // factory ! chaquefois que tu dois faire cette action, appel également la methode suivante dessus.
 
         services.AddHttpClient<ApiClient>(ConfigureApiHttpClientTimeout)
             .AddHttpMessageHandler<AuthHandler>();
     }
-    
+
     private static void ConfigureApiHttpClientTimeout(HttpClient httpClient)
     {
         httpClient.Timeout = ApiRequestTimeout;
@@ -63,11 +68,28 @@ public static class MauiProgram
     private static void RegisterViewModels(IServiceCollection services)
     {
         services.AddTransient<LoginViewModel>();
+        services.AddTransient<AccountViewModel>();
+        services.AddTransient<MarketViewModel>();
+        services.AddTransient<ResourceDetailViewModel>();
+        services.AddTransient<PortfolioViewModel>();
+        services.AddTransient<TransactionsViewModel>();
     }
 
     // Pages : enregistrées pour que MAUI leur injecte leur ViewModel.
     private static void RegisterPages(IServiceCollection services)
     {
         services.AddTransient<LoginPage>();
+        services.AddTransient<PlayerShell>();
+        services.AddTransient<AccountPage>();
+        services.AddTransient<MarketPage>();
+        services.AddTransient<ResourceDetailPage>();
+        services.AddTransient<PortfolioPage>();
+        services.AddTransient<TransactionsPage>();
+        services.AddTransient<AdminShell>();
+    }
+
+    private static void RegisterRoutes()
+    {
+        Routing.RegisterRoute(ResourceDetailPage.Route, typeof(ResourceDetailPage));
     }
 }

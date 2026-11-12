@@ -20,7 +20,7 @@ public class ApiException : Exception
     }
 
     // Ne fait rien si la réponse est un succès (2xx), sinon lit le ProblemDetails et lève une ApiException.
-    
+
     public static async Task ThrowIfErrorAsync(HttpResponseMessage response)
     {
         if (response.IsSuccessStatusCode)

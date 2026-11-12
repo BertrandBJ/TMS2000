@@ -1,6 +1,5 @@
 using System.Net.Http.Json;
 using System.Text.Json;
-using TMS2000.Mobile.API;
 using System.Text.Json.Serialization;
 
 namespace TMS2000.Mobile.API;
@@ -13,11 +12,11 @@ namespace TMS2000.Mobile.API;
 public class ApiClient
 {
     // Mêmes réglages JSON que le serveur : noms en camelCase + enums en texte ("Buy" et non 0).
+
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         Converters = { new JsonStringEnumConverter() }
     };
-
     private readonly HttpClient _httpClient;
     private readonly ApiSettings _apiSettings;
 
@@ -27,12 +26,12 @@ public class ApiClient
         _apiSettings = apiSettings;
     }
 
-    public async Task<TResponse> GetAsync<TResponse>(string relativePath)
-    {   
+    public async Task<TResponse> GetAsync<TResponse>(string relativePath, CancellationToken cancellationToken = default)
+    {
         Uri requestUri = _apiSettings.BuildUri(relativePath);
-        using HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
+        using HttpResponseMessage response = await _httpClient.GetAsync(requestUri, cancellationToken);
         await ApiException.ThrowIfErrorAsync(response);
-        return await ReadBodyAsync<TResponse>(response);
+        return await ReadBodyAsync<TResponse>(response, cancellationToken);
     }
 
     public async Task<TResponse> PostAsync<TRequest, TResponse>(string relativePath, TRequest requestBody)
@@ -50,7 +49,8 @@ public class ApiClient
         await ApiException.ThrowIfErrorAsync(response);
     }
 
-    private static async Task<TResponse> ReadBodyAsync<TResponse>(HttpResponseMessage response) =>
-        await response.Content.ReadFromJsonAsync<TResponse>(JsonOptions)
+    private static async Task<TResponse> ReadBodyAsync<TResponse>(
+        HttpResponseMessage response, CancellationToken cancellationToken = default) =>
+        await response.Content.ReadFromJsonAsync<TResponse>(JsonOptions, cancellationToken)
         ?? throw new InvalidOperationException($"Réponse vide pour {response.RequestMessage?.RequestUri}.");
 }
