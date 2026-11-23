@@ -61,6 +61,17 @@ public class ResourceRepository
         await _resources.UpdateOneAsync(r => r.Id == id, update);
     }
 
+    public async Task<bool> UpdatePriceBandAsync(string id, decimal basePrice, decimal minPrice, decimal maxPrice)
+    {
+        var update = Builders<Resource>.Update
+            .Set(r => r.BasePrice, basePrice)
+            .Set(r => r.MinPrice, minPrice)
+            .Set(r => r.MaxPrice, maxPrice);
+
+        var result = await _resources.UpdateOneAsync(r => r.Id == id, update);
+        return result.MatchedCount > 0;
+    }
+
     // Admin (étape 3) : la même règle est ajoutée dans chaque ressource ciblée
     public async Task AddRuleAsync(IEnumerable<string> ids, MarketRule rule) =>
         await _resources.UpdateManyAsync(

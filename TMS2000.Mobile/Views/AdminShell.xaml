@@ -7,7 +7,17 @@
     Shell.FlyoutBehavior="Disabled">
 
     <TabBar>
-       <!-- Étape 6 : les onglets Utilisateurs, Règles et Marché viendront ici, avant Compte. -->
+        <ShellContent Title="Joueurs"
+                      Route="adminusers"
+                      ContentTemplate="{DataTemplate views:AdminUsersPage}" />
+
+        <ShellContent Title="Règles"
+                      Route="adminrules"
+                      ContentTemplate="{DataTemplate views:AdminRulesPage}" />
+
+        <ShellContent Title="Ressources"
+                      Route="adminresources"
+                      ContentTemplate="{DataTemplate views:AdminResourcesPage}" />
 
         <ShellContent Title="Compte"
                       Route="account"

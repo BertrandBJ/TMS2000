@@ -26,6 +26,9 @@ public record SnapshotResourceDto(
     string Name,
     decimal CurrentPrice,
     PriceMode Mode,
+    decimal BasePrice,
+    decimal MinPrice,
+    decimal MaxPrice,
     List<PricePointDto> RecentPrices,    // les derniers points seulement, pour afficher une courbe hors ligne
     List<SnapshotRuleDto> Rules);        // règles actives ET à venir, avec leur condition et leur effet
 

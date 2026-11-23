@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using MongoDB.Driver;
 using TMS2000.Core;
 using TMS2000.Core.Data;
+using TMS2000.Core.Helper;
 using TMS2000.Core.Models;
 using TMS2000.Core.Repositories;
 using TMS2000.Core.Services;
@@ -19,6 +20,7 @@ namespace TMS2000.Tests.Tests.Integration;
 public class PriceEngineTests : IAsyncLifetime
 {
     private const string DatabaseName = "tms2000_price_engine_tests";
+    private const int BandTickCount = 30;
 
     private readonly IMongoDatabase _database;
     private readonly IMongoCollection<Resource> _resources;
@@ -130,13 +132,34 @@ public class PriceEngineTests : IAsyncLifetime
         }
     }
 
+    [Fact]
+    public async Task Tick_KeepsPriceInsideItsBand()
+    {
+        const string resourceId = "r-band";
+        var priceBand = new PriceBand(BasePrice: 50m, MinPrice: 45m, MaxPrice: 55m);
+        await InsertResourceAsync(resourceId, 50m, PriceMode.FastRise, TruncateToMilliseconds(DateTime.UtcNow),
+            historyLength: 1, priceBand: priceBand);
+        var priceEngine = CreatePriceEngine();
+
+        for (var tickIndex = 0; tickIndex < BandTickCount; tickIndex++)
+        {
+            await priceEngine.TickAsync(TruncateToMilliseconds(DateTime.UtcNow));
+
+            var resource = await _resources.Find(r => r.Id == resourceId).FirstAsync();
+            Assert.InRange(resource.CurrentPrice, priceBand.MinPrice, priceBand.MaxPrice);
+        }
+    }
+
     // --- Helpers ---
 
     private PriceEngineService CreatePriceEngine() => new(new ResourceRepository(_database));
 
     // Un point par minute à partir de firstPointAt, tous au même prix
-    private async Task InsertResourceAsync(string resourceId, decimal price, PriceMode mode, DateTime firstPointAt, int historyLength)
+    private async Task InsertResourceAsync(string resourceId, decimal price, PriceMode mode, DateTime firstPointAt, int historyLength,
+        PriceBand? priceBand = null)
     {
+        var band = priceBand ?? PriceBand.Undefined;
+
         var priceHistory = Enumerable.Range(0, historyLength)
             .Select(minuteOffset => new PricePoint { Price = price, At = firstPointAt.AddMinutes(minuteOffset) })
             .ToList();
@@ -146,6 +169,9 @@ public class PriceEngineTests : IAsyncLifetime
             Id = resourceId,
             Name = resourceId,
             CurrentPrice = price,
+            BasePrice = band.BasePrice,
+            MinPrice = band.MinPrice,
+            MaxPrice = band.MaxPrice,
             Mode = mode,
             ModeChangedAt = firstPointAt,
             PriceHistory = priceHistory

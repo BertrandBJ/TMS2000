@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TMS2000.Mobile.Views.AdminRulesPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModels="clr-namespace:TMS2000.Mobile.ViewModels"
+    x:DataType="viewModels:AdminRulesViewModel"
+    Title="Règles">
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="16,8" RowSpacing="6">
+
+        <Button Grid.Row="0"
+                Text="Nouvelle règle"
+                Clicked="OnNewRuleClicked" />
+
+        <Label Grid.Row="1"
+               Text="{Binding ErrorMessage}"
+               TextColor="Red"
+               HorizontalTextAlignment="Center" />
+
+        <Label Grid.Row="2"
+               Text="Aucune règle active ou à venir."
+               TextColor="Gray"
+               IsVisible="{Binding HasNoRules}" />
+
+        <RefreshView Grid.Row="3"
+                     Command="{Binding RefreshCommand}"
+                     IsRefreshing="{Binding IsRefreshing}">
+            <CollectionView ItemsSource="{Binding RuleRows}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:AdminRuleRow">
+                        <Border Margin="0,4"
+                                Padding="12"
+                                Stroke="Gray"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 10">
+                            <Grid ColumnDefinitions="*,Auto"
+                                  RowDefinitions="Auto,Auto,Auto,Auto"
+                                  RowSpacing="2"
+                                  ColumnSpacing="8">
+                                <Label Grid.Row="0" Grid.Column="0"
+                                       Text="{Binding EffectDescription}"
+                                       FontSize="16"
+                                       FontAttributes="Bold" />
+                                <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="1"
+                                        Text="Supprimer"
+                                        BackgroundColor="OrangeRed"
+                                        TextColor="White"
+                                        VerticalOptions="Start"
+                                        Command="{Binding DeleteCommand}" />
+                                <Label Grid.Row="1" Grid.Column="0"
+                                       Text="{Binding ConditionDescription}" />
+                                <Label Grid.Row="2" Grid.ColumnSpan="2"
+                                       Text="{Binding ResourcesDescription}"
+                                       TextColor="SteelBlue" />
+                                <Label Grid.Row="3" Grid.ColumnSpan="2"
+                                       FontSize="12"
+                                       TextColor="Gray">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="{Binding PeriodDescription}" />
+                                            <Span Text=" · " />
+                                            <Span Text="{Binding CreatedByDescription}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

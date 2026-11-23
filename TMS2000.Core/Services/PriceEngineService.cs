@@ -19,7 +19,7 @@ public class PriceEngineService
 
         foreach (var resource in resources)
         {
-            var (newPrice, newMode) = PriceSimulator.Next(resource.CurrentPrice, resource.Mode, Random.Shared);
+            var (newPrice, newMode) = PriceSimulator.Next(resource.CurrentPrice, PriceBand.For(resource), resource.Mode, Random.Shared);
             var modeChangedAt = newMode != resource.Mode ? now : resource.ModeChangedAt;
 
             await _resourceRepository.ApplyTickAsync(

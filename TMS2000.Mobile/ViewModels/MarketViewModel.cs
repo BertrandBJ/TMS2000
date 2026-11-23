@@ -15,12 +15,24 @@ public partial class MarketViewModel : ObservableObject
     private readonly SnapshotStore _snapshotStore;
     private readonly SnapshotService _snapshotService;
     private readonly TokenStore _tokenStore;
+    private readonly ConnectionStatus _connectionStatus;
+    private readonly PendingActionQueue _pendingActionQueue;
+    private readonly PendingActionSynchronizer _pendingActionSynchronizer;
 
-    public MarketViewModel(SnapshotStore snapshotStore, SnapshotService snapshotService, TokenStore tokenStore)
+    public MarketViewModel(
+        SnapshotStore snapshotStore,
+        SnapshotService snapshotService,
+        TokenStore tokenStore,
+        ConnectionStatus connectionStatus,
+        PendingActionQueue pendingActionQueue,
+        PendingActionSynchronizer pendingActionSynchronizer)
     {
         _snapshotStore = snapshotStore;
         _snapshotService = snapshotService;
         _tokenStore = tokenStore;
+        _connectionStatus = connectionStatus;
+        _pendingActionQueue = pendingActionQueue;
+        _pendingActionSynchronizer = pendingActionSynchronizer;
     }
 
     public ObservableCollection<MarketRow> MarketRows { get; } = new();
@@ -33,12 +45,24 @@ public partial class MarketViewModel : ObservableObject
 
     [ObservableProperty] private bool _isRefreshing;
 
+    [ObservableProperty] private string? _connectionDescription;
+
+    [ObservableProperty] private bool _hasConnectionDescription;
+
+    [ObservableProperty] private string? _syncMessage;
+
+    [ObservableProperty] private bool _hasSyncMessage;
+
     // wrapped dans des methods qu'on va call quand la page pop/depop. 
 
     public void StartListening()
     {
         _snapshotStore.SnapshotUpdated += OnSnapshotUpdated;
         _tokenStore.SessionCleared += OnSessionCleared;
+        _connectionStatus.StatusChanged += OnConnectionStatusChanged;
+        _pendingActionQueue.PendingActionsChanged += OnPendingActionsChanged;
+
+        ShowConnectionStatus();
 
         if (_snapshotStore.CurrentSnapshot is null)
         {
@@ -52,6 +76,8 @@ public partial class MarketViewModel : ObservableObject
     {
         _snapshotStore.SnapshotUpdated -= OnSnapshotUpdated;
         _tokenStore.SessionCleared -= OnSessionCleared;
+        _connectionStatus.StatusChanged -= OnConnectionStatusChanged;
+        _pendingActionQueue.PendingActionsChanged -= OnPendingActionsChanged;
     }
 
     private void OnSessionCleared(object? sender, EventArgs eventArgs)
@@ -65,19 +91,24 @@ public partial class MarketViewModel : ObservableObject
         ErrorMessage = null;
         try
         {
+            if (_pendingActionQueue.Count > 0)
+            {
+                await _pendingActionSynchronizer.SyncAsync();
+            }
+
             await _snapshotService.RefreshAsync();
+            _connectionStatus.MarkReachable();
         }
         catch (ApiException apiException)
         {
             ErrorMessage = apiException.Message;
         }
-        catch (HttpRequestException)
+        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
         {
-            ErrorMessage = "Serveur injoignable.";
-        }
-        catch (TaskCanceledException)
-        {
-            ErrorMessage = "Le serveur met trop de temps à répondre.";
+            _connectionStatus.MarkUnreachable();
+            ErrorMessage = _snapshotStore.CurrentSnapshot is null
+                ? "Serveur injoignable et aucune donnée enregistrée sur ce téléphone."
+                : null;
         }
         finally
         {
@@ -88,9 +119,66 @@ public partial class MarketViewModel : ObservableObject
     {
         if (_snapshotStore.CurrentSnapshot is not null)
         {
+            ErrorMessage = null;
             ShowSnapshot(_snapshotStore.CurrentSnapshot);
         }
+
+        ShowConnectionStatus();
     }
+
+    private void OnConnectionStatusChanged(object? sender, EventArgs eventArgs)
+    {
+        ShowConnectionStatus();
+    }
+
+    private void OnPendingActionsChanged(object? sender, EventArgs eventArgs)
+    {
+        ShowConnectionStatus();
+    }
+
+    private void ShowConnectionStatus()
+    {
+        int pendingActionCount = _pendingActionQueue.Count;
+        string pendingDescription = pendingActionCount switch
+        {
+            0 => string.Empty,
+            1 => "1 ordre en attente",
+            _ => $"{pendingActionCount} ordres en attente"
+        };
+
+        if (_connectionStatus.IsOffline)
+        {
+            List<string> descriptionParts = new() { "Hors ligne", DescribeDataAge() };
+            if (pendingActionCount > 0)
+            {
+                descriptionParts.Add(pendingDescription);
+            }
+
+            ConnectionDescription = string.Join(" · ", descriptionParts);
+        }
+        else
+        {
+            ConnectionDescription = pendingActionCount > 0 ? $"{pendingDescription} d'envoi" : null;
+        }
+
+        HasConnectionDescription = ConnectionDescription is not null;
+        SyncMessage = _connectionStatus.SyncMessage;
+        HasSyncMessage = SyncMessage is not null;
+    }
+
+    private string DescribeDataAge()
+    {
+        if (_snapshotStore.ReceivedAt is not DateTime receivedAt)
+        {
+            return "aucune donnée enregistrée";
+        }
+
+        DateTime localReceivedAt = receivedAt.ToLocalTime();
+        return localReceivedAt.Date == DateTime.Today
+            ? $"données de {localReceivedAt:HH:mm}"
+            : $"données du {localReceivedAt:dd/MM HH:mm}";
+    }
+
     private void ShowSnapshot(GameSnapshot snapshot)
     {
         foreach (SnapshotResourceDto resource in snapshot.Resources)
@@ -124,7 +212,7 @@ public partial class MarketViewModel : ObservableObject
 
         string ownedDescription = ownedQuantity == 0
             ? "Possédé : aucun"
-            : $"Possédé : {ownedQuantity} (valeur {ownedQuantity * resource.CurrentPrice:N0} $)";
+            : $"Possédé : {ownedQuantity} (valeur {AmountFormatter.FormatMoney(ownedQuantity * resource.CurrentPrice)})";
 
         marketRow.ResourceName = resource.Name;
         marketRow.CurrentPrice = resource.CurrentPrice;

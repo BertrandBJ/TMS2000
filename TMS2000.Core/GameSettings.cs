@@ -7,7 +7,11 @@ public static class GameSettings
     public const int RecentTransactionsCount = 20;     // transactions renvoyées par GET /api/me
     public const int MaxRulesPerResource = 3;          // règles actives ou à venir par ressource
     public const decimal MaxTaxPercent = 50m;          // taxe max d'une règle TransactionTax
-    public const decimal MinPrice = 1m;                // un prix ne descend jamais sous 1
+    public const decimal MinPrice = 0.01m;             // plancher absolu : un centime
+    public const decimal DefaultMinPriceMultiplier = 0.5m;
+    public const decimal DefaultMaxPriceMultiplier = 3m;
+    public const double PriceReversionStrength = 0.02;
+    public const decimal PlayerStartingBalance = 100m;
     public const int TradeMaxAttempts = 3;             // tentatives en cas de modification concurrente
     public const int MaxSessionsPerUser = 5;           // pour le refresh
 

@@ -1,3 +1,4 @@
+using TMS2000.Mobile.Helpers;
 using TMS2000.Shared.DTO.Market;
 
 namespace TMS2000.Mobile.Views;
@@ -62,10 +63,10 @@ public class PriceChartDrawable : IDrawable
 
         canvas.FontColor = Colors.Gray;
         canvas.FontSize = PriceLabelFontSize;
-        canvas.DrawString($"{highestPrice:N0} $",
+        canvas.DrawString(AmountFormatter.FormatMoney(highestPrice),
             chartLeft, chartTop + 2, chartWidth, PriceLabelHeight,
             Microsoft.Maui.Graphics.HorizontalAlignment.Right, Microsoft.Maui.Graphics.VerticalAlignment.Top);
-        canvas.DrawString($"{lowestPrice:N0} $",
+        canvas.DrawString(AmountFormatter.FormatMoney(lowestPrice),
             chartLeft, chartBottom - PriceLabelHeight - 2, chartWidth, PriceLabelHeight,
             Microsoft.Maui.Graphics.HorizontalAlignment.Right, Microsoft.Maui.Graphics.VerticalAlignment.Bottom);
     }

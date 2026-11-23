@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TMS2000.Mobile.API;
+using TMS2000.Mobile.Local;
 using TMS2000.Mobile.Services;
 
 namespace TMS2000.Mobile.ViewModels;
@@ -12,16 +13,27 @@ public partial class LoginViewModel : ObservableObject
     private readonly SessionService _sessionService;
     private readonly ApiSettings _apiSettings;
     private readonly AppNavigator _appNavigator;
+    private readonly CurrentAccount _currentAccount;
+    private readonly LocalDatabase _localDatabase;
 
-    public LoginViewModel(SessionService sessionService, ApiSettings apiSettings, AppNavigator appNavigator)
+    public LoginViewModel(
+        SessionService sessionService,
+        ApiSettings apiSettings,
+        AppNavigator appNavigator,
+        CurrentAccount currentAccount,
+        LocalDatabase localDatabase)
     {
         _sessionService = sessionService;
         _apiSettings = apiSettings;
         _appNavigator = appNavigator;
+        _currentAccount = currentAccount;
+        _localDatabase = localDatabase;
 
-        _email = string.Empty;
+        _email = currentAccount.Email ?? string.Empty;
         _password = string.Empty;
         _apiBaseUrl = apiSettings.BaseUrl; // pré-rempli avec la dernière URL utilisée
+
+        _ = LoadPendingActionsHintAsync();
     }
 
     // Chaque champ génère une propriété publique du même nom sans "_" et avec majuscule :
@@ -36,6 +48,8 @@ public partial class LoginViewModel : ObservableObject
     [ObservableProperty] private string? _errorMessage;
 
     [ObservableProperty] private bool _isBusy;
+
+    [ObservableProperty] private string? _pendingActionsHint;
 
     // Génère la propriété LoginCommand, que le bouton du XAML utilisera.
 
@@ -68,6 +82,10 @@ public partial class LoginViewModel : ObservableObject
         {
             ErrorMessage = apiException.Message; // le "detail" écrit par ton GlobalExceptionHandler
         }
+        catch (OfflineLoginException offlineLoginException)
+        {
+            ErrorMessage = offlineLoginException.Message;
+        }
         catch (HttpRequestException)
         {
             ErrorMessage = "Serveur injoignable : vérifie l'adresse de l'API et le réseau.";
@@ -79,6 +97,29 @@ public partial class LoginViewModel : ObservableObject
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    private async Task LoadPendingActionsHintAsync()
+    {
+        string? email = _currentAccount.Email;
+        if (email is null)
+        {
+            return;
+        }
+
+        try
+        {
+            int pendingActionCount = await _localDatabase.CountPendingActionsAsync(email);
+            if (pendingActionCount > 0)
+            {
+                PendingActionsHint = pendingActionCount == 1
+                    ? $"1 ordre passé hors ligne avec {email} n'a pas encore été envoyé. Il partira dès que ce compte se connectera en ligne."
+                    : $"{pendingActionCount} ordres passés hors ligne avec {email} n'ont pas encore été envoyés. Ils partiront dès que ce compte se connectera en ligne.";
+            }
+        }
+        catch (Exception)
+        {
         }
     }
 }

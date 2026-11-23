@@ -13,6 +13,11 @@
         Spacing="12" 
         VerticalOptions="Center">
 
+        <Label Text="{Binding PendingActionsDescription}"
+               IsVisible="{Binding HasPendingActions}"
+               TextColor="DarkOrange"
+               HorizontalTextAlignment="Center" />
+
         <Button Text="Se déconnecter"
                 Command="{Binding LogoutCommand}" />
 

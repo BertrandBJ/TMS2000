@@ -1,4 +1,5 @@
 ﻿using MongoDB.Driver;
+using TMS2000.Core;
 using TMS2000.Core.Data;
 using TMS2000.Core.Models;
 using TMS2000.Core.Helper;
@@ -6,9 +7,13 @@ using TMS2000.Shared;
 
 MongoConventions.Register();
 
-string Required(string name) =>
-    Environment.GetEnvironmentVariable(name)
-    ?? throw new InvalidOperationException($"La variable d'environnement '{name}' est manquante.");
+string Required(string name)
+{
+    var value = Environment.GetEnvironmentVariable(name);
+    if (string.IsNullOrWhiteSpace(value))
+        throw new InvalidOperationException($"La variable d'environnement '{name}' est manquante ou vide.");
+    return value;
+}
 
 var database = new MongoClient(Required("ConnectionStrings__MongoDb"))
     .GetDatabase(Required("MongoSettings__DatabaseName"));
@@ -25,23 +30,41 @@ var modes = Enum.GetValues<PriceMode>();
 
 var seedResources = new (string Id, string Name, decimal Price)[]
 {
-    ("r-carrot", "Carotte", 25m),
-    ("r-potato", "Pomme de terre", 18m),
-    ("r-wheat", "Blé", 12m),
-    ("r-wood", "Bois", 30m),
-    ("r-coal", "Charbon", 40m),
-    ("r-iron", "Fer", 55m),
-    ("r-copper", "Cuivre", 70m),
-    ("r-oil", "Pétrole", 90m),
-    ("r-silver", "Argent", 150m),
-    ("r-gold", "Or", 300m)
+    ("r-carrot", "Carotte", 1m),
+    ("r-potato", "Pomme de terre", 2m),
+    ("r-wheat", "Blé", 4m),
+    ("r-wood", "Bois", 8m),
+    ("r-coal", "Charbon", 15m),
+    ("r-iron", "Fer", 30m),
+    ("r-copper", "Cuivre", 60m),
+    ("r-oil", "Pétrole", 120m),
+    ("r-silver", "Argent", 250m),
+    ("r-gold", "Or", 500m)
 };
 
 foreach (var (id, name, price) in seedResources) //evite les doublons//
 {
-    if (await resources.Find(r => r.Id == id).AnyAsync())
+    var priceBand = PriceBand.FromBasePrice(price);
+    var existingResource = await resources.Find(r => r.Id == id).FirstOrDefaultAsync();
+
+    if (existingResource is not null)
     {
-        Console.WriteLine($"Ressource '{name}' déjà présente, ignorée."); // si un truc est déjà dans la bdd, on ignore et go next// normalement avec mangoDB qui fait _id auto donc déjà unique mais bon//
+        if (PriceBand.For(existingResource).IsDefined)
+        {
+            Console.WriteLine($"Ressource '{name}' déjà présente, ignorée."); // si un truc est déjà dans la bdd, on ignore et go next// normalement avec mangoDB qui fait _id auto donc déjà unique mais bon//
+            continue;
+        }
+
+        var bandUpdate = Builders<Resource>.Update
+            .Set(r => r.BasePrice, priceBand.BasePrice)
+            .Set(r => r.MinPrice, priceBand.MinPrice)
+            .Set(r => r.MaxPrice, priceBand.MaxPrice);
+
+        if (!priceBand.Contains(existingResource.CurrentPrice))
+            bandUpdate = bandUpdate.Set(r => r.CurrentPrice, priceBand.BasePrice);
+
+        await resources.UpdateOneAsync(r => r.Id == id, bandUpdate);
+        Console.WriteLine($"Ressource '{name}' : fourchette de prix ajoutée ({priceBand.MinPrice} - {priceBand.MaxPrice}).");
         continue;
     }
 
@@ -50,6 +73,9 @@ foreach (var (id, name, price) in seedResources) //evite les doublons//
         Id = id,
         Name = name,
         CurrentPrice = price,
+        BasePrice = priceBand.BasePrice,
+        MinPrice = priceBand.MinPrice,
+        MaxPrice = priceBand.MaxPrice,
         Mode = modes[random.Next(modes.Length)],
         ModeChangedAt = now,
         PriceHistory = new() { new PricePoint { Price = price, At = now } }
@@ -58,7 +84,7 @@ foreach (var (id, name, price) in seedResources) //evite les doublons//
 }
 
 await SeedUserAsync(Required("Seed__AdminEmail"), Required("Seed__AdminPassword"), "Admin", 0m);
-await SeedUserAsync(Required("Seed__PlayerEmail"), Required("Seed__PlayerPassword"), "Player", 1000m);
+await SeedUserAsync(Required("Seed__PlayerEmail"), Required("Seed__PlayerPassword"), "Player", GameSettings.PlayerStartingBalance);
 
 Console.WriteLine("Seed terminé.");
 

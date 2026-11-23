@@ -6,6 +6,9 @@ public class Resource
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public decimal CurrentPrice { get; set; }
+    public decimal BasePrice { get; set; }
+    public decimal MinPrice { get; set; }
+    public decimal MaxPrice { get; set; }
     public PriceMode Mode { get; set; }
     public DateTime ModeChangedAt { get; set; }
     public List<PricePoint> PriceHistory { get; set; } = new();

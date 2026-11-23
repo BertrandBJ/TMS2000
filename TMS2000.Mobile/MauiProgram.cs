@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TMS2000.Mobile.API;
+using TMS2000.Mobile.Local;
 using TMS2000.Mobile.ViewModels;
 using TMS2000.Mobile.Services;
 using TMS2000.Mobile.Views;
@@ -42,7 +43,13 @@ public static class MauiProgram
         services.AddSingleton<SnapshotStore>();
         services.AddTransient<SnapshotService>();
         services.AddSingleton<MarketTickLoop>();
+        services.AddSingleton<LocalDatabase>();
+        services.AddSingleton<CurrentAccount>();
+        services.AddSingleton<PendingActionQueue>();
+        services.AddSingleton<ConnectionStatus>();
+        services.AddSingleton<PendingActionSynchronizer>();
         services.AddTransient<TradeService>();
+        services.AddTransient<AdminService>();
     }
 
     // Les deux clients HTTP : même configuration de base, seul ApiClient passe par l'AuthHandler.
@@ -73,6 +80,12 @@ public static class MauiProgram
         services.AddTransient<ResourceDetailViewModel>();
         services.AddTransient<PortfolioViewModel>();
         services.AddTransient<TransactionsViewModel>();
+        services.AddTransient<AdminUsersViewModel>();
+        services.AddTransient<AdminUserDetailViewModel>();
+        services.AddTransient<AdminRulesViewModel>();
+        services.AddTransient<AdminRuleEditorViewModel>();
+        services.AddTransient<AdminResourcesViewModel>();
+        services.AddTransient<AdminResourceEditorViewModel>();
     }
 
     // Pages : enregistrées pour que MAUI leur injecte leur ViewModel.
@@ -86,10 +99,19 @@ public static class MauiProgram
         services.AddTransient<PortfolioPage>();
         services.AddTransient<TransactionsPage>();
         services.AddTransient<AdminShell>();
+        services.AddTransient<AdminUsersPage>();
+        services.AddTransient<AdminUserDetailPage>();
+        services.AddTransient<AdminRulesPage>();
+        services.AddTransient<AdminRuleEditorPage>();
+        services.AddTransient<AdminResourcesPage>();
+        services.AddTransient<AdminResourceEditorPage>();
     }
 
     private static void RegisterRoutes()
     {
         Routing.RegisterRoute(ResourceDetailPage.Route, typeof(ResourceDetailPage));
+        Routing.RegisterRoute(AdminUserDetailPage.Route, typeof(AdminUserDetailPage));
+        Routing.RegisterRoute(AdminRuleEditorPage.Route, typeof(AdminRuleEditorPage));
+        Routing.RegisterRoute(AdminResourceEditorPage.Route, typeof(AdminResourceEditorPage));
     }
 }

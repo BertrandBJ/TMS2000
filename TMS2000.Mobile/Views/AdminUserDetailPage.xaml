@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TMS2000.Mobile.Views.AdminUserDetailPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModels="clr-namespace:TMS2000.Mobile.ViewModels"
+    xmlns:views="clr-namespace:TMS2000.Mobile.Views"
+    x:DataType="viewModels:AdminUserDetailViewModel"
+    Title="{Binding Email}">
+
+    <RefreshView Command="{Binding RefreshCommand}"
+                 IsRefreshing="{Binding IsRefreshing}">
+        <CollectionView ItemsSource="{Binding TransactionRows}"
+                        Margin="16,8">
+            <CollectionView.Header>
+                <VerticalStackLayout Spacing="10" Padding="0,0,0,8">
+
+                    <Label Text="{Binding ErrorMessage}"
+                           TextColor="Red"
+                           HorizontalTextAlignment="Center" />
+
+                    <Border Padding="12"
+                            Stroke="Gray"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10">
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="6">
+                            <Label Grid.Row="0" Grid.ColumnSpan="2"
+                                   Text="{Binding Email}"
+                                   FontSize="16"
+                                   FontAttributes="Bold" />
+                            <Label Grid.Row="1" Grid.Column="0" Text="Solde" />
+                            <Label Grid.Row="1" Grid.Column="1"
+                                   Text="{Binding Balance, Converter={StaticResource MoneyConverter}}"
+                                   FontAttributes="Bold"
+                                   HorizontalOptions="End"
+                                   HorizontalTextAlignment="End" />
+                        </Grid>
+                    </Border>
+
+                    <Label Text="Ressources"
+                           FontSize="18"
+                           FontAttributes="Bold" />
+                    <Label Text="Aucune ressource possédée."
+                           TextColor="Gray"
+                           IsVisible="{Binding HasNoHoldings}" />
+                    <VerticalStackLayout Spacing="6"
+                                         BindableLayout.ItemsSource="{Binding HoldingRows}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="viewModels:HoldingRow">
+                                <Border Padding="12,8"
+                                        Stroke="Gray"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 8">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Grid.Column="0"
+                                               Text="{Binding ResourceName}"
+                                               FontAttributes="Bold" />
+                                        <Label Grid.Column="1"
+                                               Text="{Binding Quantity}"
+                                               HorizontalOptions="End"
+                                               HorizontalTextAlignment="End" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+
+                    <Label Text="Transactions"
+                           FontSize="18"
+                           FontAttributes="Bold" />
+                    <Label Text="Aucune transaction."
+                           TextColor="Gray"
+                           IsVisible="{Binding HasNoTransactions}" />
+                </VerticalStackLayout>
+            </CollectionView.Header>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="viewModels:TransactionRow">
+                    <views:TransactionCardView />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </RefreshView>
+</ContentPage>

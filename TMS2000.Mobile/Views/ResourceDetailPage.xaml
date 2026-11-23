@@ -13,7 +13,7 @@
 
             <Grid ColumnDefinitions="*,Auto">
                 <Label Grid.Column="0"
-                       Text="{Binding CurrentPrice, StringFormat='{0:N0} $'}"
+                       Text="{Binding CurrentPrice, Converter={StaticResource MoneyConverter}}"
                        FontSize="26"
                        FontAttributes="Bold" />
                 <Label Grid.Column="1"
@@ -24,9 +24,13 @@
                        HorizontalTextAlignment="End" />
             </Grid>
 
+            <Label Text="{Binding PriceBandDescription}"
+                   FontSize="13"
+                   TextColor="Gray" />
+
             <Grid ColumnDefinitions="*,Auto">
                 <Label Grid.Column="0"
-                       Text="{Binding Balance, StringFormat='Solde : {0:N0} $'}" />
+                       Text="{Binding Balance, Converter={StaticResource MoneyConverter}, StringFormat='Solde : {0}'}" />
                 <Label Grid.Column="1"
                        Text="{Binding OwnedQuantity, StringFormat='Possédé : {0}'}"
                        HorizontalOptions="End"

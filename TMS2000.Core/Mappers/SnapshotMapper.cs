@@ -25,6 +25,9 @@ public static class SnapshotMapper
         Name: resource.Name,
         CurrentPrice: resource.CurrentPrice,
         Mode: resource.Mode,
+        BasePrice: resource.BasePrice,
+        MinPrice: resource.MinPrice,
+        MaxPrice: resource.MaxPrice,
         RecentPrices: resource.PriceHistory
             .Select(pricePoint => new PricePointDto(pricePoint.Price, pricePoint.At))
             .ToList(),

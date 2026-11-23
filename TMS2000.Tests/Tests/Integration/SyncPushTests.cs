@@ -62,7 +62,7 @@ public class SyncPushTests
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var sync = await ReadAsync<SyncPushResponse>(response);
-        Assert.Equal(5, sync.Results.Count());
+        Assert.Equal(5, sync.Results.Count);
         Assert.All(sync.Results, result =>
         {
             Assert.Equal(TransactionStatus.Rejected, result.Status);

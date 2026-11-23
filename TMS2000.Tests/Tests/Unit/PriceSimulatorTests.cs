@@ -17,6 +17,9 @@ public class PriceSimulatorTests
     private const decimal ReferencePrice = 100m;             // à 100, 1 % de variation = 1 unité de prix
     private const decimal RoundingMargin = 0.01m;            // le prix est arrondi au centime
     private const decimal AverageTrendTolerancePercent = 0.25m;
+    private const int LongRunTickCount = 10_000;
+
+    private static readonly PriceBand ReferenceBand = PriceBand.FromBasePrice(ReferencePrice);
 
     // Chaque mode : tendance (drift) et amplitude du bruit (volatility), en % par tick.
     // Ce tableau est la spécification : s'il change dans PriceSimulator, ce test doit échouer.
@@ -37,7 +40,7 @@ public class PriceSimulatorTests
         //below c'est là qu'on fait run le next en fonction du sampleSize. on simule le running time du serveur.
         for (var sampleIndex = 0; sampleIndex < SampleSize; sampleIndex++)
         {
-            var (newPrice, _) = PriceSimulator.Next(ReferencePrice, mode, random);
+            var (newPrice, _) = PriceSimulator.Next(ReferencePrice, ReferenceBand, mode, random);
 
             Assert.InRange(newPrice, lowestAllowedPrice, highestAllowedPrice);
             Assert.Equal(decimal.Round(newPrice, 2), newPrice); // jamais plus de 2 décimales
@@ -52,7 +55,64 @@ public class PriceSimulatorTests
     }
 
     [Fact]
-    public void Next_NeverGoesBelowMinPrice_WhateverTheMode()
+    public void Next_StaysInsideItsPriceBand_WhateverTheMode()
+    {
+        var random = new Random(RandomSeed);
+
+        foreach (var mode in Enum.GetValues<PriceMode>())
+        {
+            foreach (var startPrice in new[] { ReferenceBand.MinPrice, ReferenceBand.MaxPrice })
+            {
+                var price = startPrice;
+                for (var sampleIndex = 0; sampleIndex < SampleSize; sampleIndex++)
+                {
+                    (price, _) = PriceSimulator.Next(price, ReferenceBand, mode, random);
+
+                    Assert.InRange(price, ReferenceBand.MinPrice, ReferenceBand.MaxPrice);
+                }
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData(2.5)]
+    [InlineData(0.6)]
+    public void Next_PullsPriceBackTowardsBasePrice(double startPriceRatio)
+    {
+        var random = new Random(RandomSeed);
+        var startPrice = ReferencePrice * (decimal)startPriceRatio;
+        var expectedAverageChangePercent = (decimal)(-GameSettings.PriceReversionStrength * Math.Log(startPriceRatio) * 100);
+        var totalChangePercent = 0m;
+
+        for (var sampleIndex = 0; sampleIndex < SampleSize; sampleIndex++)
+        {
+            var (newPrice, _) = PriceSimulator.Next(startPrice, ReferenceBand, PriceMode.Stable, random);
+            totalChangePercent += (newPrice - startPrice) / startPrice * 100m;
+        }
+
+        var averageChangePercent = totalChangePercent / SampleSize;
+        Assert.InRange(averageChangePercent,
+            expectedAverageChangePercent - AverageTrendTolerancePercent,
+            expectedAverageChangePercent + AverageTrendTolerancePercent);
+    }
+
+    [Fact]
+    public void Next_OverManyTicks_StaysInsideItsPriceBand()
+    {
+        var random = new Random(RandomSeed);
+        var price = ReferencePrice;
+        var mode = PriceMode.Stable;
+
+        for (var tickIndex = 0; tickIndex < LongRunTickCount; tickIndex++)
+        {
+            (price, mode) = PriceSimulator.Next(price, ReferenceBand, mode, random);
+
+            Assert.InRange(price, ReferenceBand.MinPrice, ReferenceBand.MaxPrice);
+        }
+    }
+
+    [Fact]
+    public void Next_WithUndefinedPriceBand_NeverGoesBelowAbsoluteMinPrice()
     {
         var random = new Random(RandomSeed);
 
@@ -60,12 +120,22 @@ public class PriceSimulatorTests
         {
             for (var sampleIndex = 0; sampleIndex < SampleSize; sampleIndex++)
             {
-                // Départ au prix plancher : toute baisse doit être bloquée à MinPrice
-                var (newPrice, _) = PriceSimulator.Next(GameSettings.MinPrice, mode, random);
+                var (newPrice, _) = PriceSimulator.Next(GameSettings.MinPrice, PriceBand.Undefined, mode, random);
 
                 Assert.True(newPrice >= GameSettings.MinPrice, $"{mode} : prix {newPrice} sous le plancher");
             }
         }
+    }
+
+    [Fact]
+    public void FromBasePrice_UsesDefaultMultipliers()
+    {
+        var priceBand = PriceBand.FromBasePrice(1m);
+
+        Assert.Equal(1m, priceBand.BasePrice);
+        Assert.Equal(0.5m, priceBand.MinPrice);
+        Assert.Equal(3m, priceBand.MaxPrice);
+        Assert.True(priceBand.IsDefined);
     }
 
     [Fact]
@@ -76,7 +146,7 @@ public class PriceSimulatorTests
 
         for (var sampleIndex = 0; sampleIndex < SampleSize; sampleIndex++)
         {
-            var (_, newMode) = PriceSimulator.Next(ReferencePrice, PriceMode.Stable, random);
+            var (_, newMode) = PriceSimulator.Next(ReferencePrice, ReferenceBand, PriceMode.Stable, random);
             if (newMode != PriceMode.Stable)
                 modeChangeCount++;
         }

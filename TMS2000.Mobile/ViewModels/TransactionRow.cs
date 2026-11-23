@@ -33,7 +33,9 @@ public partial class TransactionRow : ObservableObject
 
         TypeDescription = isPurchase ? "🛒 Achat" : "💰 Vente";
         ResourceName = transaction.ResourceName;
-        TradeDescription = $"{transaction.Quantity} × {transaction.ExecutedPrice:N0} $";
+        TradeDescription = transaction.Status == TransactionStatus.Pending
+            ? $"{transaction.Quantity} × ~{AmountFormatter.FormatMoney(transaction.ExecutedPrice)}"
+            : $"{transaction.Quantity} × {AmountFormatter.FormatMoney(transaction.ExecutedPrice)}";
         DateDescription = transaction.Offline
             ? $"{transactionDate:dd/MM HH:mm} · hors ligne"
             : $"{transactionDate:dd/MM HH:mm}";
@@ -55,7 +57,7 @@ public partial class TransactionRow : ObservableObject
 
         if (transaction.Type == TransactionType.Buy)
         {
-            return $"Total {transaction.Quantity * transaction.ExecutedPrice:N0} $";
+            return $"Total {AmountFormatter.FormatMoney(transaction.Quantity * transaction.ExecutedPrice)}";
         }
 
         decimal profit = transaction.Profit ?? 0;
