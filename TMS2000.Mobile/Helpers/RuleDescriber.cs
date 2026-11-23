@@ -1,4 +1,5 @@
 using TMS2000.Shared;
+using TMS2000.Shared.DTO.Admin;
 using TMS2000.Shared.DTO.Sync;
 
 namespace TMS2000.Mobile.Helpers;
@@ -26,16 +27,25 @@ public static class RuleDescriber
 
     public static string Describe(SnapshotRuleDto rule, DateTime serverTime, decimal currentPrice)
     {
-        string effectDescription = rule.Effect.Type switch
-        {
-            EffectType.BuyBlocked => "Achat bloqué",
-            EffectType.SellBlocked => "Vente bloquée",
-            EffectType.QuantityLimit => $"Quantité limitée à {rule.Effect.Value:0} par transaction",
-            EffectType.TransactionTax => $"Taxe de {rule.Effect.Value:0.##} %",
-            _ => "Effet inconnu"
-        };
+        bool isTriggered = RuleEvaluator.IsTriggered(rule, serverTime, currentPrice);
+        string marker = isTriggered ? "⚠ EN VIGUEUR :" : "•";
 
-        string operatorSymbol = rule.Condition.Operator switch
+        return $"{marker} {DescribeEffect(rule.Effect)} {DescribeCondition(rule.Condition)} "
+               + $"({DescribePeriod(rule.StartsAt, rule.EndsAt, serverTime)})";
+    }
+
+    public static string DescribeEffect(RuleEffectDto effect) => effect.Type switch
+    {
+        EffectType.BuyBlocked => "Achat bloqué",
+        EffectType.SellBlocked => "Vente bloquée",
+        EffectType.QuantityLimit => $"Quantité limitée à {effect.Value:0} par transaction",
+        EffectType.TransactionTax => $"Taxe de {effect.Value:0.##} %",
+        _ => "Effet inconnu"
+    };
+
+    public static string DescribeCondition(RuleConditionDto condition)
+    {
+        string operatorSymbol = condition.Operator switch
         {
             ConditionOperator.LessThan => "<",
             ConditionOperator.LessThanOrEqual => "≤",
@@ -44,15 +54,11 @@ public static class RuleDescriber
             _ => "?"
         };
 
-        bool isActive = RuleEvaluator.IsActive(rule, serverTime);
-        bool isTriggered = RuleEvaluator.IsTriggered(rule, serverTime, currentPrice);
-
-        string periodDescription = isActive
-            ? $"active jusqu'au {rule.EndsAt.ToLocalTime():dd/MM HH:mm}"
-            : $"à venir : du {rule.StartsAt.ToLocalTime():dd/MM HH:mm} au {rule.EndsAt.ToLocalTime():dd/MM HH:mm}";
-
-        string marker = isTriggered ? "⚠ EN VIGUEUR :" : "•";
-
-        return $"{marker} {effectDescription} si prix {operatorSymbol} {rule.Condition.Value:0.##} $ ({periodDescription})";
+        return $"si prix {operatorSymbol} {AmountFormatter.FormatMoney(condition.Value)}";
     }
+
+    public static string DescribePeriod(DateTime startsAt, DateTime endsAt, DateTime now) =>
+        startsAt <= now
+            ? $"active jusqu'au {endsAt.ToLocalTime():dd/MM HH:mm}"
+            : $"à venir : du {startsAt.ToLocalTime():dd/MM HH:mm} au {endsAt.ToLocalTime():dd/MM HH:mm}";
 }

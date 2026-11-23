@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TMS2000.Mobile.Views.AdminUsersPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModels="clr-namespace:TMS2000.Mobile.ViewModels"
+    xmlns:admin="clr-namespace:TMS2000.Shared.DTO.Admin;assembly=TMS2000.Shared"
+    x:DataType="viewModels:AdminUsersViewModel"
+    Title="Joueurs">
+
+    <Grid RowDefinitions="Auto,Auto,*" Padding="16,8">
+
+        <Label Grid.Row="0"
+               Text="{Binding ErrorMessage}"
+               TextColor="Red"
+               HorizontalTextAlignment="Center" />
+
+        <Label Grid.Row="1"
+               Text="Aucun joueur."
+               TextColor="Gray"
+               IsVisible="{Binding HasNoUsers}" />
+
+        <RefreshView Grid.Row="2"
+                     Command="{Binding RefreshCommand}"
+                     IsRefreshing="{Binding IsRefreshing}">
+            <CollectionView ItemsSource="{Binding Users}"
+                            SelectionMode="Single"
+                            SelectionChanged="OnUserSelected">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="admin:UserSummaryDto">
+                        <Border Margin="0,4"
+                                Padding="12"
+                                Stroke="Gray"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 10">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <Label Grid.Column="0"
+                                       Text="{Binding Email}"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       LineBreakMode="TailTruncation" />
+                                <Label Grid.Column="1"
+                                       Text="{Binding Balance, Converter={StaticResource MoneyConverter}}"
+                                       FontSize="16"
+                                       HorizontalOptions="End"
+                                       HorizontalTextAlignment="End" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

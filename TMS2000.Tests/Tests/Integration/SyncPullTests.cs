@@ -89,8 +89,8 @@ public class SyncPullTests
             pull.Player.Transactions.Select(transaction => transaction.TransactionId),
             push.Snapshot.Player.Transactions.Select(transaction => transaction.TransactionId));
         Assert.Equal(
-            pull.Player.Portfolio.Sum(holding => holding.Lots.Sum(lot => lot.Quantity)),
-            push.Snapshot.Player.Portfolio.Sum(holding => holding.Lots.Sum(lot => lot.Quantity)));
+            pull.Player.Portfolio.SelectMany(holding => holding.Lots).Sum(lot => lot.Quantity),
+            push.Snapshot.Player.Portfolio.SelectMany(holding => holding.Lots).Sum(lot => lot.Quantity));
     }
 
     [Fact]

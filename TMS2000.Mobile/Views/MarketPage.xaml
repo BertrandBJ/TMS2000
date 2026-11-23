@@ -7,10 +7,31 @@
     x:DataType="viewModels:MarketViewModel"
     Title="Marché">
 
-    <Grid RowDefinitions="Auto,Auto,*"
+    <Grid RowDefinitions="Auto,Auto,Auto,*"
           Padding="16,8">
 
-        <Border Grid.Row="0"
+        <VerticalStackLayout Grid.Row="0"
+                             Spacing="4">
+            <Border Padding="10,6"
+                    Margin="0,0,0,4"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 8"
+                    BackgroundColor="{AppThemeBinding Light=#FFF1D6, Dark=#4A3412}"
+                    IsVisible="{Binding HasConnectionDescription}">
+                <Label Text="{Binding ConnectionDescription}"
+                       FontSize="14"
+                       FontAttributes="Bold"
+                       HorizontalTextAlignment="Center" />
+            </Border>
+            <Label Text="{Binding SyncMessage}"
+                   IsVisible="{Binding HasSyncMessage}"
+                   FontSize="13"
+                   TextColor="Gray"
+                   Margin="0,0,0,4"
+                   HorizontalTextAlignment="Center" />
+        </VerticalStackLayout>
+
+        <Border Grid.Row="1"
                 Padding="12"
                 Margin="0,0,0,6"
                 Stroke="Gray"
@@ -21,7 +42,7 @@
                        Text="Solde"
                        FontSize="16" />
                 <Label Grid.Row="0" Grid.Column="1"
-                       Text="{Binding Balance, StringFormat='{0:N0} $'}"
+                       Text="{Binding Balance, Converter={StaticResource MoneyConverter}}"
                        FontSize="18"
                        FontAttributes="Bold"
                        HorizontalOptions="End"
@@ -31,7 +52,7 @@
                        FontSize="14"
                        TextColor="Gray" />
                 <Label Grid.Row="1" Grid.Column="1"
-                       Text="{Binding HoldingsValue, StringFormat='{0:N0} $'}"
+                       Text="{Binding HoldingsValue, Converter={StaticResource MoneyConverter}}"
                        FontSize="14"
                        TextColor="Gray"
                        HorizontalOptions="End"
@@ -39,12 +60,12 @@
             </Grid>
         </Border>
 
-        <Label Grid.Row="1"
+        <Label Grid.Row="2"
                Text="{Binding ErrorMessage}"
                TextColor="Red"
                HorizontalTextAlignment="Center" />
 
-        <RefreshView Grid.Row="2"
+        <RefreshView Grid.Row="3"
                      Command="{Binding RefreshCommand}"
                      IsRefreshing="{Binding IsRefreshing}">
 
@@ -77,7 +98,7 @@
                                        FontSize="18"
                                        FontAttributes="Bold" />
                                 <Label Grid.Row="0" Grid.Column="1"
-                                       Text="{Binding CurrentPrice, StringFormat='{0:N0} $'}"
+                                       Text="{Binding CurrentPrice, Converter={StaticResource MoneyConverter}}"
                                        FontSize="18"
                                        FontAttributes="Bold"
                                        HorizontalOptions="End"

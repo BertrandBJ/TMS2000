@@ -36,6 +36,11 @@
                    TextColor="Red"
                    HorizontalTextAlignment="Center" />
 
+            <Label Text="{Binding PendingActionsHint}"
+                   TextColor="DarkOrange"
+                   FontSize="13"
+                   HorizontalTextAlignment="Center" />
+
             <Label Text="Adresse de l'API" Margin="0,24,0,0" FontSize="12" />
             <Entry Keyboard="Url"
                    Text="{Binding ApiBaseUrl}" />

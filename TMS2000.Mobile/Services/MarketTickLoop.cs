@@ -1,3 +1,5 @@
+using TMS2000.Mobile.API;
+using TMS2000.Mobile.Local;
 using TMS2000.Shared.DTO.Sync;
 
 namespace TMS2000.Mobile.Services;
@@ -15,16 +17,35 @@ public class MarketTickLoop
     private static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(10);
 
     private readonly IServiceProvider _serviceProvider;
+    private readonly CurrentAccount _currentAccount;
+    private readonly SnapshotStore _snapshotStore;
+    private readonly PendingActionQueue _pendingActionQueue;
+    private readonly PendingActionSynchronizer _pendingActionSynchronizer;
+    private readonly ConnectionStatus _connectionStatus;
     private CancellationTokenSource? _loopCancellation;
+    private bool _isPaused;
 
-    public MarketTickLoop(IServiceProvider serviceProvider, TokenStore tokenStore)
+    public MarketTickLoop(
+        IServiceProvider serviceProvider,
+        TokenStore tokenStore,
+        CurrentAccount currentAccount,
+        SnapshotStore snapshotStore,
+        PendingActionQueue pendingActionQueue,
+        PendingActionSynchronizer pendingActionSynchronizer,
+        ConnectionStatus connectionStatus)
     {
         _serviceProvider = serviceProvider;
+        _currentAccount = currentAccount;
+        _snapshotStore = snapshotStore;
+        _pendingActionQueue = pendingActionQueue;
+        _pendingActionSynchronizer = pendingActionSynchronizer;
+        _connectionStatus = connectionStatus;
         tokenStore.SessionCleared += OnSessionCleared;
     }
 
     public void Start()
     {
+        _isPaused = false;
         if (_loopCancellation is not null)
         {
             return;
@@ -42,8 +63,30 @@ public class MarketTickLoop
         _loopCancellation = null;
     }
 
+    public void Pause()
+    {
+        if (_loopCancellation is null)
+        {
+            return;
+        }
+
+        Stop();
+        _isPaused = true;
+    }
+
+    public void Resume()
+    {
+        if (!_isPaused)
+        {
+            return;
+        }
+
+        Start();
+    }
+
     private void OnSessionCleared(object? sender, EventArgs eventArgs)
     {
+        _isPaused = false;
         Stop();
     }
 
@@ -51,6 +94,7 @@ public class MarketTickLoop
     {
         try
         {
+            await RestoreLocalStateAsync();
             while (true)
             {
                 TimeSpan waitTime = await RefreshAndGetWaitTimeAsync(cancellationToken);
@@ -63,13 +107,37 @@ public class MarketTickLoop
         }
     }
 
+    private async Task RestoreLocalStateAsync()
+    {
+        string? email = _currentAccount.Email;
+        if (email is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _pendingActionQueue.LoadAsync(email);
+            await _snapshotStore.LoadFromCacheAsync(email);
+        }
+        catch (Exception)
+        {
+        }
+    }
+
 
     private async Task<TimeSpan> RefreshAndGetWaitTimeAsync(CancellationToken cancellationToken)
     {
         try
         {
+            if (_pendingActionQueue.Count > 0)
+            {
+                await _pendingActionSynchronizer.SyncAsync(cancellationToken);
+            }
+
             var snapshotService = _serviceProvider.GetRequiredService<SnapshotService>();
             GameSnapshot snapshot = await snapshotService.RefreshAsync(cancellationToken);
+            _connectionStatus.MarkReachable();
 
             TimeSpan timeUntilNextTick = snapshot.NextTickAt - snapshot.ServerTime;
 
@@ -83,6 +151,16 @@ public class MarketTickLoop
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
+        }
+        catch (ApiException)
+        {
+            _connectionStatus.MarkReachable();
+            return RetryDelay;
+        }
+        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
+        {
+            _connectionStatus.MarkUnreachable();
+            return RetryDelay;
         }
         catch (Exception)
         {

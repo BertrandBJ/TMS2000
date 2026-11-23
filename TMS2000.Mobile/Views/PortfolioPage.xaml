@@ -26,7 +26,7 @@
 
                     <Label Grid.Row="1" Grid.Column="0" Text="Solde" />
                     <Label Grid.Row="1" Grid.Column="1"
-                           Text="{Binding Balance, StringFormat='{0:N0} $'}"
+                           Text="{Binding Balance, Converter={StaticResource MoneyConverter}}"
                            FontAttributes="Bold"
                            HorizontalOptions="End" HorizontalTextAlignment="End" />
 

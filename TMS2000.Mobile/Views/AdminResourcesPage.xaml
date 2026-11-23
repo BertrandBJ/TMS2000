@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TMS2000.Mobile.Views.AdminResourcesPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModels="clr-namespace:TMS2000.Mobile.ViewModels"
+    x:DataType="viewModels:AdminResourcesViewModel"
+    Title="Ressources">
+
+    <Grid RowDefinitions="Auto,*" Padding="16,8">
+
+        <Label Grid.Row="0"
+               Text="{Binding ErrorMessage}"
+               TextColor="Red"
+               HorizontalTextAlignment="Center" />
+
+        <RefreshView Grid.Row="1"
+                     Command="{Binding RefreshCommand}"
+                     IsRefreshing="{Binding IsRefreshing}">
+            <CollectionView ItemsSource="{Binding ResourceRows}"
+                            SelectionMode="Single"
+                            SelectionChanged="OnResourceSelected">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:AdminResourceRow">
+                        <Border Margin="0,4"
+                                Padding="12"
+                                Stroke="Gray"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 10">
+                            <Grid ColumnDefinitions="*,Auto"
+                                  RowDefinitions="Auto,Auto"
+                                  RowSpacing="4"
+                                  ColumnSpacing="8">
+                                <Label Grid.Row="0" Grid.Column="0"
+                                       Text="{Binding Resource.Name}"
+                                       FontSize="18"
+                                       FontAttributes="Bold" />
+                                <Label Grid.Row="0" Grid.Column="1"
+                                       Text="{Binding CurrentPriceDescription}"
+                                       FontSize="18"
+                                       FontAttributes="Bold"
+                                       HorizontalOptions="End"
+                                       HorizontalTextAlignment="End" />
+                                <Label Grid.Row="1" Grid.Column="0"
+                                       Text="{Binding PriceBandDescription}"
+                                       FontSize="13"
+                                       TextColor="Gray" />
+                                <Label Grid.Row="1" Grid.Column="1"
+                                       Text="{Binding PriceModeDescription}"
+                                       FontSize="13"
+                                       TextColor="Gray"
+                                       HorizontalOptions="End"
+                                       HorizontalTextAlignment="End" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

@@ -11,11 +11,13 @@ public partial class TransactionsViewModel : ObservableObject
 {
     private readonly SnapshotStore _snapshotStore;
     private readonly TokenStore _tokenStore;
+    private readonly PendingActionQueue _pendingActionQueue;
 
-    public TransactionsViewModel(SnapshotStore snapshotStore, TokenStore tokenStore)
+    public TransactionsViewModel(SnapshotStore snapshotStore, TokenStore tokenStore, PendingActionQueue pendingActionQueue)
     {
         _snapshotStore = snapshotStore;
         _tokenStore = tokenStore;
+        _pendingActionQueue = pendingActionQueue;
     }
 
     public ObservableCollection<TransactionRow> TransactionRows { get; } = new();
@@ -26,6 +28,7 @@ public partial class TransactionsViewModel : ObservableObject
     {
         _snapshotStore.SnapshotUpdated += OnSnapshotUpdated;
         _tokenStore.SessionCleared += OnSessionCleared;
+        _pendingActionQueue.PendingActionsChanged += OnSnapshotUpdated;
 
         if (_snapshotStore.CurrentSnapshot is not null)
         {
@@ -37,6 +40,7 @@ public partial class TransactionsViewModel : ObservableObject
     {
         _snapshotStore.SnapshotUpdated -= OnSnapshotUpdated;
         _tokenStore.SessionCleared -= OnSessionCleared;
+        _pendingActionQueue.PendingActionsChanged -= OnSnapshotUpdated;
     }
 
     private void OnSnapshotUpdated(object? sender, EventArgs eventArgs)
@@ -54,7 +58,8 @@ public partial class TransactionsViewModel : ObservableObject
 
     private void ShowSnapshot(GameSnapshot snapshot)
     {
-        List<TransactionDto> newestFirstTransactions = snapshot.Player.Transactions
+        List<TransactionDto> newestFirstTransactions = _pendingActionQueue
+            .MergeWithPendingTransactions(snapshot.Player.Transactions)
             .OrderByDescending(transaction => transaction.ExecutedAt ?? transaction.CreatedAt)
             .ToList();
 

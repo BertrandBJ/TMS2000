@@ -78,6 +78,7 @@ builder.Services.AddScoped<SyncService>();
 builder.Services.AddScoped<RuleService>();
 builder.Services.AddScoped<TradeService>();
 builder.Services.AddScoped<AdminUserService>();
+builder.Services.AddScoped<AdminResourceService>();
 builder.Services.AddScoped<PlayerService>();
 builder.Services.AddSingleton<MarketClock>();
 

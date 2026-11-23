@@ -24,6 +24,11 @@ public static class ApiCalls
         (await response.Content.ReadFromJsonAsync<T>(TestApiFactory.JsonOptions))!;
 
 
+    public static Task<HttpResponseMessage> UpdatePriceBandAsync(
+        HttpClient client, string resourceId, decimal basePrice, decimal? minPrice = null, decimal? maxPrice = null) =>
+        client.PutAsJsonAsync($"/api/admin/resources/{resourceId}/price-band",
+            new UpdatePriceBandRequest(basePrice, minPrice, maxPrice), TestApiFactory.JsonOptions);
+
     // La condition par défaut ("prix > 1") est toujours vraie : la règle s'applique dès qu'elle est active.
     // conditionOperator et conditionValue permettent de tester une règle dont la condition n'est PAS remplie.
 

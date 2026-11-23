@@ -32,6 +32,8 @@ public class AppNavigator
 
         _mainWindow = new Window(startupPage);
         _mainWindow.Created += OnMainWindowCreated;
+        _mainWindow.Stopped += OnMainWindowStopped;
+        _mainWindow.Resumed += OnMainWindowResumed;
         return _mainWindow;
     }
 
@@ -61,6 +63,16 @@ public class AppNavigator
     private async void OnMainWindowCreated(object? sender, EventArgs eventArgs)
     {
         await ShowStartPageAsync();
+    }
+
+    private void OnMainWindowStopped(object? sender, EventArgs eventArgs)
+    {
+        _marketTickLoop.Pause();
+    }
+
+    private void OnMainWindowResumed(object? sender, EventArgs eventArgs)
+    {
+        _marketTickLoop.Resume();
     }
 
 

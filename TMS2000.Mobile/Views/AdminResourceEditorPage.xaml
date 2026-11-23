@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TMS2000.Mobile.Views.AdminResourceEditorPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModels="clr-namespace:TMS2000.Mobile.ViewModels"
+    x:DataType="viewModels:AdminResourceEditorViewModel"
+    Title="{Binding ResourceName}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="10">
+
+            <Label Text="{Binding CurrentPriceDescription}"
+                   FontSize="20"
+                   FontAttributes="Bold" />
+
+            <Label Text="Prix de référence ($)" FontAttributes="Bold" />
+            <Entry Keyboard="Numeric"
+                   Text="{Binding BasePriceText}" />
+
+            <Label Text="Minimum ($) — vide : référence × 0,5" FontAttributes="Bold" />
+            <Entry Keyboard="Numeric"
+                   Text="{Binding MinPriceText}" />
+
+            <Label Text="Maximum ($) — vide : référence × 3" FontAttributes="Bold" />
+            <Entry Keyboard="Numeric"
+                   Text="{Binding MaxPriceText}" />
+
+            <Label Text="Le prix est ramené dans la fourchette au prochain tick."
+                   FontSize="13"
+                   TextColor="Gray" />
+
+            <Button Text="Enregistrer"
+                    Command="{Binding SaveCommand}" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}" />
+
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="Red"
+                   HorizontalTextAlignment="Center" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

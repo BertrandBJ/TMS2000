@@ -42,6 +42,14 @@ public class ApiClient
         return await ReadBodyAsync<TResponse>(response);
     }
 
+    public async Task<TResponse> PutAsync<TRequest, TResponse>(string relativePath, TRequest requestBody)
+    {
+        Uri requestUri = _apiSettings.BuildUri(relativePath);
+        using HttpResponseMessage response = await _httpClient.PutAsJsonAsync(requestUri, requestBody, JsonOptions);
+        await ApiException.ThrowIfErrorAsync(response);
+        return await ReadBodyAsync<TResponse>(response);
+    }
+
     public async Task DeleteAsync(string relativePath)
     {
         Uri requestUri = _apiSettings.BuildUri(relativePath);

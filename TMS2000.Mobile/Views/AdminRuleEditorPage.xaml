@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TMS2000.Mobile.Views.AdminRuleEditorPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModels="clr-namespace:TMS2000.Mobile.ViewModels"
+    x:DataType="viewModels:AdminRuleEditorViewModel"
+    Title="Nouvelle règle">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="10">
+
+            <Label Text="Ressources concernées"
+                   FontSize="18"
+                   FontAttributes="Bold" />
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding ResourceRows}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:SelectableResourceRow">
+                        <HorizontalStackLayout Spacing="4">
+                            <CheckBox IsChecked="{Binding IsSelected}" />
+                            <Label Text="{Binding ResourceName}"
+                                   VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <Label Text="Condition sur le prix"
+                   FontSize="18"
+                   FontAttributes="Bold" />
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                <Picker Grid.Column="0"
+                        WidthRequest="80"
+                        ItemsSource="{Binding OperatorOptions}"
+                        SelectedIndex="{Binding SelectedOperatorIndex}" />
+                <Entry Grid.Column="1"
+                       Placeholder="Prix ($)"
+                       Keyboard="Numeric"
+                       Text="{Binding ConditionValueText}" />
+            </Grid>
+
+            <Label Text="Effet"
+                   FontSize="18"
+                   FontAttributes="Bold" />
+            <Picker ItemsSource="{Binding EffectOptions}"
+                    SelectedIndex="{Binding SelectedEffectIndex}" />
+            <Entry Placeholder="Valeur (quantité max ou % de taxe)"
+                   Keyboard="Numeric"
+                   Text="{Binding EffectValueText}"
+                   IsVisible="{Binding IsEffectValueNeeded}" />
+
+            <Label Text="Période"
+                   FontSize="18"
+                   FontAttributes="Bold" />
+            <HorizontalStackLayout Spacing="8">
+                <Switch IsToggled="{Binding StartsLater}" />
+                <Label Text="Programmer le début (sinon : maintenant)"
+                       VerticalOptions="Center" />
+            </HorizontalStackLayout>
+            <Grid ColumnDefinitions="*,*"
+                  ColumnSpacing="12"
+                  IsVisible="{Binding StartsLater}">
+                <DatePicker Grid.Column="0"
+                            Date="{Binding StartDate}" />
+                <TimePicker Grid.Column="1"
+                            Time="{Binding StartTime}" />
+            </Grid>
+            <Entry Placeholder="Durée en heures (1 à 168)"
+                   Keyboard="Numeric"
+                   Text="{Binding DurationHoursText}" />
+
+            <Button Text="Créer la règle"
+                    Command="{Binding CreateRuleCommand}" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}" />
+
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="Red"
+                   HorizontalTextAlignment="Center" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

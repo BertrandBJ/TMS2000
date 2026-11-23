@@ -8,7 +8,7 @@ public static class PriceSimulator
 
 
     // below : synthax : next => nom de la methode (parameter it takes).
-    public static (decimal Price, PriceMode Mode) Next(decimal currentPrice, PriceMode mode, Random random)
+    public static (decimal Price, PriceMode Mode) Next(decimal currentPrice, PriceBand priceBand, PriceMode mode, Random random)
     {
         var (drift, volatility) = mode switch
         // on explose le tuple instant, pas besoin de le nommée
@@ -24,18 +24,24 @@ public static class PriceSimulator
 
         // tendance + bruit aléatoire entre -volatility et +volatility. pour le calcule : NextDouble()x2-1 ça donne une valeur entre -1 et 1. 
 
-        var changePercent = drift + (random.NextDouble() * 2 - 1) * volatility;
+        var changePercent = drift + ReversionPercent(currentPrice, priceBand) + (random.NextDouble() * 2 - 1) * volatility;
 
-        var newPrice = Math.Round(currentPrice * (1 + (decimal)changePercent / 100m), 2);
-
-        if (newPrice < GameSettings.MinPrice)
-            newPrice = GameSettings.MinPrice;
+        var newPrice = priceBand.Clamp(Math.Round(currentPrice * (1 + (decimal)changePercent / 100m), 2));
 
         var newMode = random.NextDouble() < ModeChangeProbability ? RandomMode(random) : mode;
 
         return (newPrice, newMode);
     }
     // below selection du modeRandomly si jamais ça passe le if above (d'environ 12,5%).
+
+    public static double ReversionPercent(decimal currentPrice, PriceBand priceBand)
+    {
+        if (!priceBand.IsDefined || currentPrice <= 0)
+            return 0.0;
+
+        var distanceFromBase = Math.Log((double)(currentPrice / priceBand.BasePrice));
+        return -GameSettings.PriceReversionStrength * distanceFromBase * 100;
+    }
 
     private static PriceMode RandomMode(Random random)
     {
